@@ -1188,22 +1188,11 @@ local AutoAttackKeybind = GoldFarmTab:CreateKeybind({
         autoAttackEnabled = not autoAttackEnabled
         
         if autoAttackEnabled then
-            if Connections['AutoAttack'] then
-                Connections['AutoAttack']:Disconnect()
-            end
-            
-            Connections['AutoAttack'] = task.spawn(function()
-                while autoAttackEnabled do
-                    attackTarget()
-                    spamG()
-                    task.wait(0.1)
-                end
-            end)
+            -- Hold down left mouse button
+            mouse1press()
         else
-            if Connections['AutoAttack'] then
-                pcall(function() task.cancel(Connections['AutoAttack']) end)
-                Connections['AutoAttack'] = nil
-            end
+            -- Release left mouse button
+            mouse1release()
         end
     end,
 })
