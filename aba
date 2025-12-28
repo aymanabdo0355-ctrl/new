@@ -1,7 +1,7 @@
 --[[ 
     Xes Hub - ABA Script
     UI: Rayfield
-    Complete Version with Farm Overlay
+    Complete Version with Farm Overlay + Gold Farm
 ]] 
 
 local Players = game:GetService("Players")
@@ -13,6 +13,7 @@ local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local Debris = game:GetService("Debris")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
@@ -398,6 +399,15 @@ local function DisableDesync()
         Connections['DesyncRespawn'] = nil
     end
     pcall(function() setfflag("NextGenReplicatorEnabledWrite4", "False") end)
+    
+    -- Only reset character if gold farm is not active
+    if not goldFarmEnabled then
+        task.wait(0.1)
+        local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildWhichIsA("Humanoid")
+        if humanoid then
+            humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+        end
+    end
 end
 
 local function ResetCharacter()
@@ -687,7 +697,7 @@ local Window = Rayfield:CreateWindow({
     LoadingTitle = "xes",
     LoadingSubtitle = "init",
     ConfigurationSaving = {
-        Enabled = true,
+        Enabled = false,
         FolderName = nil,
         FileName = "xes"
     },
@@ -867,7 +877,418 @@ local AutoSkipBansToggle = CombatTab:CreateToggle({
     end,
 })
 
+-- Gold Farm Tab
+local GoldFarmTab = Window:CreateTab("gold farm", 4483362458)
+
+local FarmWarningSection = GoldFarmTab:CreateSection("warning")
+local FarmWarningLabel = GoldFarmTab:CreateLabel("enable desync first!")
+
+local TargetSection = GoldFarmTab:CreateSection("target selection")
+
+-- Variables for Gold Farm
+local goldFarmEnabled = false
+local lockOnEnabled = false
+local autoAttackEnabled = false
+local selectedTarget = "Nearest Player"
+local farmDistance = 6
+local heightOffset = 2
+
+-- Auto Skills
+local autoSkill1 = false
+local autoSkill2 = false
+local autoSkill3 = false
+local autoSkill4 = false
+
+local skill1Distance = 50
+local skill2Distance = 50
+local skill3Distance = 50
+local skill4Distance = 50
+
+-- Helper Functions
+local function getPlayerDistance(player1, player2)
+    if not (player1 and player1.Character and player1.Character:FindFirstChild("HumanoidRootPart")) then
+        return math.huge
+    end
+    if not (player2 and player2.Character and player2.Character:FindFirstChild("HumanoidRootPart")) then
+        return math.huge
+    end
+    
+    return (player1.Character.HumanoidRootPart.Position - player2.Character.HumanoidRootPart.Position).Magnitude
+end
+
+local function getNearestPlayer()
+    local nearestPlayer = nil
+    local shortestDistance = math.huge
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        if player == LocalPlayer then continue end
+        if not player.Character then continue end
+        if not player.Character:FindFirstChild("Humanoid") then continue end
+        if player.Character.Humanoid.Health <= 0 then continue end
+        if not player.Character:FindFirstChild("HumanoidRootPart") then continue end
+        
+        -- Skip teammates if applicable
+        if player.Team == LocalPlayer.Team and LocalPlayer.Team ~= nil then continue end
+        
+        local distance = getPlayerDistance(LocalPlayer, player)
+        if distance < shortestDistance then
+            nearestPlayer = player
+            shortestDistance = distance
+        end
+    end
+    
+    return nearestPlayer
+end
+
+local function getTargetPlayer()
+    if selectedTarget == "Nearest Player" then
+        return getNearestPlayer()
+    else
+        -- Find specific player by name
+        for _, player in pairs(Players:GetPlayers()) do
+            if player.Name == selectedTarget then
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    if player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+                        return player
+                    end
+                end
+            end
+        end
+    end
+    return nil
+end
+
+local function moveToTarget(target)
+    if not (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")) then
+        return
+    end
+    if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart")) then
+        return
+    end
+    
+    local targetPos = target.Character.HumanoidRootPart.CFrame
+    LocalPlayer.Character.HumanoidRootPart.CFrame = targetPos * CFrame.new(0, heightOffset, farmDistance)
+end
+
+local function lookAtTarget(target)
+    if not (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")) then
+        return
+    end
+    if not (target.Character and target.Character:FindFirstChild("HumanoidRootPart")) then
+        return
+    end
+    
+    local Camera = workspace.CurrentCamera
+    local targetPos = target.Character.HumanoidRootPart.Position
+    Camera.CFrame = CFrame.lookAt(Camera.CFrame.Position, targetPos)
+end
+
+local function attackTarget()
+    pcall(function()
+        if LocalPlayer.Character then
+            local mouseHitCFrame = workspace.CurrentCamera.CFrame
+            if LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                mouseHitCFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -3)
+            end
+            
+            local args = {
+                "truem1",
+                {
+                    md = Vector3.zero,
+                    skeyreal = false,
+                    skeydown = true,
+                    mousehit = mouseHitCFrame,
+                    dodgevelo = Vector3.zero,
+                    air = false
+                }
+            }
+            
+            local ServerTraits = LocalPlayer:WaitForChild("Backpack"):FindFirstChild("ServerTraits")
+            if ServerTraits then
+                local Input = ServerTraits:FindFirstChild("Input")
+                if Input then
+                    Input:FireServer(unpack(args))
+                end
+            end
+        end
+    end)
+end
+
+local function spamG()
+    pcall(function()
+        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.G, false, game)
+        task.wait(0.05)
+        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.G, false, game)
+    end)
+end
+
+local function useSkill(skillNumber)
+    local keyMap = {
+        [1] = "One",
+        [2] = "Two",
+        [3] = "Three",
+        [4] = "Four"
+    }
+    
+    local key = keyMap[skillNumber]
+    if key then
+        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode[key], false, game)
+        task.wait(0.1)
+        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode[key], false, game)
+    end
+end
+
+-- Build player list
+local playerList = {"Nearest Player"}
+for _, player in pairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer then
+        table.insert(playerList, player.Name)
+    end
+end
+
+local TargetDropdown = GoldFarmTab:CreateDropdown({
+    Name = "target",
+    Options = playerList,
+    CurrentOption = "Nearest Player",
+    Flag = "TargetPlayer",
+    Callback = function(Option)
+        selectedTarget = Option
+    end,
+})
+
+local RefreshButton = GoldFarmTab:CreateButton({
+    Name = "refresh players",
+    Callback = function()
+        playerList = {"Nearest Player"}
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer then
+                table.insert(playerList, player.Name)
+            end
+        end
+        
+        TargetDropdown:Set(playerList)
+        print("[xes] player list refreshed")
+    end,
+})
+
+local FarmSettingsSection = GoldFarmTab:CreateSection("farm settings")
+
+local DistanceSlider = GoldFarmTab:CreateSlider({
+    Name = "distance",
+    Range = {0, 15},
+    Increment = 1,
+    CurrentValue = 6,
+    Flag = "FarmDistance",
+    Callback = function(Value)
+        farmDistance = Value
+    end,
+})
+
+local HeightSlider = GoldFarmTab:CreateSlider({
+    Name = "height offset",
+    Range = {0, 15},
+    Increment = 1,
+    CurrentValue = 2,
+    Flag = "HeightOffset",
+    Callback = function(Value)
+        heightOffset = Value
+    end,
+})
+
+local FarmControlSection = GoldFarmTab:CreateSection("farm control")
+
+local GoldFarmToggle = GoldFarmTab:CreateToggle({
+    Name = "auto farm player",
+    CurrentValue = false,
+    Flag = "GoldFarm",
+    Callback = function(Value)
+        goldFarmEnabled = Value
+        
+        if Value then
+            if not desyncEnabled then
+                print("[xes] warning: desync not enabled!")
+            end
+            
+            -- Start farm loop
+            if Connections['GoldFarm'] then
+                Connections['GoldFarm']:Disconnect()
+            end
+            
+            Connections['GoldFarm'] = RunService.RenderStepped:Connect(function()
+                if not goldFarmEnabled then return end
+                
+                local target = getTargetPlayer()
+                if target then
+                    moveToTarget(target)
+                    
+                    local distance = getPlayerDistance(LocalPlayer, target)
+                    
+                    -- Auto skills based on distance
+                    if autoSkill1 and distance <= skill1Distance then
+                        useSkill(1)
+                    end
+                    if autoSkill2 and distance <= skill2Distance then
+                        useSkill(2)
+                    end
+                    if autoSkill3 and distance <= skill3Distance then
+                        useSkill(3)
+                    end
+                    if autoSkill4 and distance <= skill4Distance then
+                        useSkill(4)
+                    end
+                end
+            end)
+        else
+            -- Stop farm loop
+            if Connections['GoldFarm'] then
+                Connections['GoldFarm']:Disconnect()
+                Connections['GoldFarm'] = nil
+            end
+        end
+    end,
+})
+
+local LockOnToggle = GoldFarmTab:CreateToggle({
+    Name = "lock on target",
+    CurrentValue = false,
+    Flag = "LockOn",
+    Callback = function(Value)
+        lockOnEnabled = Value
+        
+        if Value then
+            -- Start lock on loop
+            if Connections['LockOn'] then
+                Connections['LockOn']:Disconnect()
+            end
+            
+            Connections['LockOn'] = RunService.RenderStepped:Connect(function()
+                if not lockOnEnabled then return end
+                
+                local target = getTargetPlayer()
+                if target then
+                    lookAtTarget(target)
+                end
+            end)
+        else
+            -- Stop lock on loop
+            if Connections['LockOn'] then
+                Connections['LockOn']:Disconnect()
+                Connections['LockOn'] = nil
+            end
+        end
+    end,
+})
+
+local AutoAttackKeybind = GoldFarmTab:CreateKeybind({
+    Name = "auto attack (m1)",
+    CurrentKeybind = "LeftAlt",
+    HoldToInteract = false,
+    Flag = "AutoAttack",
+    Callback = function(Keybind)
+        autoAttackEnabled = not autoAttackEnabled
+        
+        if autoAttackEnabled then
+            if Connections['AutoAttack'] then
+                Connections['AutoAttack']:Disconnect()
+            end
+            
+            Connections['AutoAttack'] = task.spawn(function()
+                while autoAttackEnabled do
+                    attackTarget()
+                    spamG()
+                    task.wait(0.1)
+                end
+            end)
+        else
+            if Connections['AutoAttack'] then
+                pcall(function() task.cancel(Connections['AutoAttack']) end)
+                Connections['AutoAttack'] = nil
+            end
+        end
+    end,
+})
+
+local SkillsSection = GoldFarmTab:CreateSection("auto skills")
+
+local Skill1Toggle = GoldFarmTab:CreateToggle({
+    Name = "skill 1",
+    CurrentValue = false,
+    Flag = "Skill1",
+    Callback = function(Value)
+        autoSkill1 = Value
+    end,
+})
+
+local Skill1DistanceSlider = GoldFarmTab:CreateSlider({
+    Name = "skill 1 distance",
+    Range = {0, 100},
+    Increment = 5,
+    CurrentValue = 50,
+    Flag = "Skill1Distance",
+    Callback = function(Value)
+        skill1Distance = Value
+    end,
+})
+
+local Skill2Toggle = GoldFarmTab:CreateToggle({
+    Name = "skill 2",
+    CurrentValue = false,
+    Flag = "Skill2",
+    Callback = function(Value)
+        autoSkill2 = Value
+    end,
+})
+
+local Skill2DistanceSlider = GoldFarmTab:CreateSlider({
+    Name = "skill 2 distance",
+    Range = {0, 100},
+    Increment = 5,
+    CurrentValue = 50,
+    Flag = "Skill2Distance",
+    Callback = function(Value)
+        skill2Distance = Value
+    end,
+})
+
+local Skill3Toggle = GoldFarmTab:CreateToggle({
+    Name = "skill 3",
+    CurrentValue = false,
+    Flag = "Skill3",
+    Callback = function(Value)
+        autoSkill3 = Value
+    end,
+})
+
+local Skill3DistanceSlider = GoldFarmTab:CreateSlider({
+    Name = "skill 3 distance",
+    Range = {0, 100},
+    Increment = 5,
+    CurrentValue = 50,
+    Flag = "Skill3Distance",
+    Callback = function(Value)
+        skill3Distance = Value
+    end,
+})
+
+local Skill4Toggle = GoldFarmTab:CreateToggle({
+    Name = "skill 4",
+    CurrentValue = false,
+    Flag = "Skill4",
+    Callback = function(Value)
+        autoSkill4 = Value
+    end,
+})
+
+local Skill4DistanceSlider = GoldFarmTab:CreateSlider({
+    Name = "skill 4 distance",
+    Range = {0, 100},
+    Increment = 5,
+    CurrentValue = 50,
+    Flag = "Skill4Distance",
+    Callback = function(Value)
+        skill4Distance = Value
+    end,
+})
+
 -- Initialize auto skip bans (works for all modes)
 SetupAutoSkipBans()
-
-Rayfield:LoadConfiguration()
