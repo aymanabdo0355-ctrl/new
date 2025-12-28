@@ -1,0 +1,873 @@
+--[[ 
+    Xes Hub - ABA Script
+    UI: Rayfield
+    Complete Version with Farm Overlay
+]] 
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualUser = game:GetService("VirtualUser")
+local LocalPlayer = Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local Debris = game:GetService("Debris")
+
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local isAltAccount = false
+local isMainAccount = false
+local desyncEnabled = false
+local desyncActive = false
+local Connections = {}
+local webhookUrl = ""
+local autoNanamiEnabled = false
+local autoBlackFlashEnabled = false
+local autoSkipBansEnabled = true
+
+-- Farm Statistics
+local FarmStats = {
+    StartTime = 0,
+    StartLevel = 0,
+    StartMoney = 0,
+    CurrentLevel = 0,
+    CurrentMoney = 0,
+    LevelsGained = 0,
+    MoneyGained = 0
+}
+
+-- Anti-AFK
+LocalPlayer.Idled:Connect(function()
+    VirtualUser:CaptureController()
+    VirtualUser:ClickButton2(Vector2.new())
+end)
+
+-- Auto Rematch
+task.spawn(function()
+    while task.wait(1) do
+        pcall(function()
+            local rematchEvent = ReplicatedStorage:FindFirstChild("RematchVote")
+            if rematchEvent and (isAltAccount or isMainAccount) then
+                rematchEvent:FireServer()
+            end
+        end)
+    end
+end)
+
+local function GetPlayerLevel()
+    local success, level = pcall(function()
+        return tonumber(LocalPlayer.PlayerGui.HUD.Lvl.Text:match("%d+")) or 0
+    end)
+    return success and level or 0
+end
+
+local function GetPlayerMoney()
+    local success, money = pcall(function()
+        local moneyText = LocalPlayer.PlayerGui.HUD.Money.Money.Text
+        return tonumber(moneyText:gsub(",", "")) or 0
+    end)
+    return success and money or 0
+end
+
+local function FormatTime(seconds)
+    local hours = math.floor(seconds / 3600)
+    local minutes = math.floor((seconds % 3600) / 60)
+    local secs = math.floor(seconds % 60)
+    
+    if hours > 0 then
+        return string.format("%dh %dm", hours, minutes)
+    elseif minutes > 0 then
+        return string.format("%dm %ds", minutes, secs)
+    else
+        return string.format("%ds", secs)
+    end
+end
+
+local function FormatNumber(num)
+    if num >= 1000000 then
+        return string.format("%.1fM", num / 1000000)
+    elseif num >= 1000 then
+        return string.format("%.1fK", num / 1000)
+    else
+        return tostring(num)
+    end
+end
+
+local function SendWebhook(title, description, color)
+    if webhookUrl == "" or webhookUrl == "YOUR_WEBHOOK_URL_HERE" then return end
+    
+    local data = {
+        ["embeds"] = {{
+            ["title"] = title,
+            ["description"] = description,
+            ["color"] = color,
+            ["footer"] = {
+                ["text"] = os.date("%I:%M %p")
+            }
+        }}
+    }
+    
+    pcall(function()
+        local jsonData = HttpService:JSONEncode(data)
+        request({
+            Url = webhookUrl,
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json"
+            },
+            Body = jsonData
+        })
+    end)
+end
+
+local function SendFarmWebhook()
+    if webhookUrl == "" or webhookUrl == "YOUR_WEBHOOK_URL_HERE" then return end
+    
+    local runtime = os.time() - FarmStats.StartTime
+    local accountType = isMainAccount and "main" or "alt"
+    
+    local description = string.format(
+        "%s | %s\n\n" ..
+        "lvl %d -> %d (+%d)\n" ..
+        "$%s -> $%s (+$%s)\n\n" ..
+        "uptime: %s",
+        LocalPlayer.Name,
+        accountType,
+        FarmStats.StartLevel,
+        FarmStats.CurrentLevel,
+        FarmStats.LevelsGained,
+        FormatNumber(FarmStats.StartMoney),
+        FormatNumber(FarmStats.CurrentMoney),
+        FormatNumber(FarmStats.MoneyGained),
+        FormatTime(runtime)
+    )
+    
+    SendWebhook("farm update", description, 3447003)
+end
+
+-- Create Farm Overlay UI
+local FarmOverlay = nil
+
+local function CreateFarmOverlay()
+    if FarmOverlay then return end
+    
+    -- Create ScreenGui that covers EVERYTHING
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "XesFarmOverlay"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.DisplayOrder = 999999999
+    ScreenGui.IgnoreGuiInset = true
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    
+    -- Black background that covers entire screen
+    local Background = Instance.new("Frame")
+    Background.Name = "Background"
+    Background.Size = UDim2.new(1, 0, 1, 0)
+    Background.Position = UDim2.new(0, 0, 0, 0)
+    Background.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    Background.BorderSizePixel = 0
+    Background.ZIndex = 999999999
+    Background.Parent = ScreenGui
+    
+    -- Stats display
+    local StatsFrame = Instance.new("Frame")
+    StatsFrame.Name = "StatsFrame"
+    StatsFrame.Size = UDim2.new(0, 320, 0, 200)
+    StatsFrame.Position = UDim2.new(0.5, -160, 0.5, -100)
+    StatsFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    StatsFrame.BorderColor3 = Color3.fromRGB(40, 40, 40)
+    StatsFrame.BorderSizePixel = 1
+    StatsFrame.ZIndex = 1000000000
+    StatsFrame.Parent = Background
+    
+    -- Username
+    local Username = Instance.new("TextLabel")
+    Username.Name = "Username"
+    Username.Size = UDim2.new(1, -20, 0, 25)
+    Username.Position = UDim2.new(0, 10, 0, 10)
+    Username.BackgroundTransparency = 1
+    Username.Text = LocalPlayer.Name
+    Username.TextColor3 = Color3.fromRGB(180, 180, 180)
+    Username.TextSize = 15
+    Username.Font = Enum.Font.Code
+    Username.TextXAlignment = Enum.TextXAlignment.Left
+    Username.ZIndex = 1000000001
+    Username.Parent = StatsFrame
+    
+    -- Mode indicator
+    local Mode = Instance.new("TextLabel")
+    Mode.Name = "Mode"
+    Mode.Size = UDim2.new(1, -20, 0, 20)
+    Mode.Position = UDim2.new(0, 10, 0, 35)
+    Mode.BackgroundTransparency = 1
+    Mode.Text = (isMainAccount and "main" or "alt")
+    Mode.TextColor3 = Color3.fromRGB(120, 120, 120)
+    Mode.TextSize = 13
+    Mode.Font = Enum.Font.Code
+    Mode.TextXAlignment = Enum.TextXAlignment.Left
+    Mode.ZIndex = 1000000001
+    Mode.Parent = StatsFrame
+    
+    -- Runtime
+    local Runtime = Instance.new("TextLabel")
+    Runtime.Name = "Runtime"
+    Runtime.Size = UDim2.new(1, -20, 0, 22)
+    Runtime.Position = UDim2.new(0, 10, 0, 70)
+    Runtime.BackgroundTransparency = 1
+    Runtime.Text = "0s"
+    Runtime.TextColor3 = Color3.fromRGB(200, 200, 200)
+    Runtime.TextSize = 16
+    Runtime.Font = Enum.Font.Code
+    Runtime.TextXAlignment = Enum.TextXAlignment.Left
+    Runtime.ZIndex = 1000000001
+    Runtime.Parent = StatsFrame
+    
+    -- Level display
+    local LevelDisplay = Instance.new("TextLabel")
+    LevelDisplay.Name = "LevelDisplay"
+    LevelDisplay.Size = UDim2.new(1, -20, 0, 22)
+    LevelDisplay.Position = UDim2.new(0, 10, 0, 105)
+    LevelDisplay.BackgroundTransparency = 1
+    LevelDisplay.Text = "lvl 0 -> 0 (+0)"
+    LevelDisplay.TextColor3 = Color3.fromRGB(100, 255, 100)
+    LevelDisplay.TextSize = 16
+    LevelDisplay.Font = Enum.Font.Code
+    LevelDisplay.TextXAlignment = Enum.TextXAlignment.Left
+    LevelDisplay.ZIndex = 1000000001
+    LevelDisplay.Parent = StatsFrame
+    
+    -- Money display
+    local MoneyDisplay = Instance.new("TextLabel")
+    MoneyDisplay.Name = "MoneyDisplay"
+    MoneyDisplay.Size = UDim2.new(1, -20, 0, 22)
+    MoneyDisplay.Position = UDim2.new(0, 10, 0, 135)
+    MoneyDisplay.BackgroundTransparency = 1
+    MoneyDisplay.Text = "$0 -> $0 (+$0)"
+    MoneyDisplay.TextColor3 = Color3.fromRGB(255, 200, 50)
+    MoneyDisplay.TextSize = 16
+    MoneyDisplay.Font = Enum.Font.Code
+    MoneyDisplay.TextXAlignment = Enum.TextXAlignment.Left
+    MoneyDisplay.ZIndex = 1000000001
+    MoneyDisplay.Parent = StatsFrame
+    
+    -- Bottom info
+    local BottomInfo = Instance.new("TextLabel")
+    BottomInfo.Name = "BottomInfo"
+    BottomInfo.Size = UDim2.new(1, -20, 0, 18)
+    BottomInfo.Position = UDim2.new(0, 10, 1, -28)
+    BottomInfo.BackgroundTransparency = 1
+    BottomInfo.Text = "webhook: 5min intervals"
+    BottomInfo.TextColor3 = Color3.fromRGB(80, 80, 80)
+    BottomInfo.TextSize = 11
+    BottomInfo.Font = Enum.Font.Code
+    BottomInfo.TextXAlignment = Enum.TextXAlignment.Center
+    BottomInfo.ZIndex = 1000000001
+    BottomInfo.Parent = StatsFrame
+    
+    ScreenGui.Parent = LocalPlayer.PlayerGui
+    FarmOverlay = ScreenGui
+    
+    return ScreenGui
+end
+
+local function UpdateFarmOverlay()
+    if not FarmOverlay then return end
+    
+    local runtime = os.time() - FarmStats.StartTime
+    FarmStats.CurrentLevel = GetPlayerLevel()
+    FarmStats.CurrentMoney = GetPlayerMoney()
+    FarmStats.LevelsGained = FarmStats.CurrentLevel - FarmStats.StartLevel
+    FarmStats.MoneyGained = FarmStats.CurrentMoney - FarmStats.StartMoney
+    
+    local StatsFrame = FarmOverlay.Background.StatsFrame
+    
+    StatsFrame.Runtime.Text = FormatTime(runtime)
+    StatsFrame.LevelDisplay.Text = string.format("lvl %d -> %d (+%d)", 
+        FarmStats.StartLevel, FarmStats.CurrentLevel, FarmStats.LevelsGained)
+    StatsFrame.MoneyDisplay.Text = string.format("$%s -> $%s (+$%s)", 
+        FormatNumber(FarmStats.StartMoney), FormatNumber(FarmStats.CurrentMoney), FormatNumber(FarmStats.MoneyGained))
+end
+
+local function RemoveFarmOverlay()
+    if FarmOverlay then
+        FarmOverlay:Destroy()
+        FarmOverlay = nil
+    end
+end
+
+local function StartFarming()
+    FarmStats.StartTime = os.time()
+    FarmStats.StartLevel = GetPlayerLevel()
+    FarmStats.StartMoney = GetPlayerMoney()
+    FarmStats.CurrentLevel = FarmStats.StartLevel
+    FarmStats.CurrentMoney = FarmStats.StartMoney
+    FarmStats.LevelsGained = 0
+    FarmStats.MoneyGained = 0
+    
+    CreateFarmOverlay()
+    
+    -- Update overlay every second
+    if Connections['OverlayUpdate'] then
+        Connections['OverlayUpdate']:Disconnect()
+    end
+    Connections['OverlayUpdate'] = RunService.RenderStepped:Connect(function()
+        if isAltAccount or isMainAccount then
+            UpdateFarmOverlay()
+        end
+    end)
+    
+    -- Send webhook every 5 minutes
+    if Connections['WebhookTimer'] then
+        Connections['WebhookTimer']:Disconnect()
+    end
+    Connections['WebhookTimer'] = task.spawn(function()
+        while isAltAccount or isMainAccount do
+            task.wait(300) -- 5 minutes
+            SendFarmWebhook()
+        end
+    end)
+    
+    -- Send initial webhook
+    local accountType = isMainAccount and "main" or "alt"
+    SendWebhook(
+        "started",
+        string.format("%s | %s\n\nrunning", LocalPlayer.Name, accountType),
+        65280
+    )
+end
+
+local function StopFarming()
+    RemoveFarmOverlay()
+    
+    if Connections['OverlayUpdate'] then
+        Connections['OverlayUpdate']:Disconnect()
+        Connections['OverlayUpdate'] = nil
+    end
+    
+    if Connections['WebhookTimer'] then
+        pcall(function() task.cancel(Connections['WebhookTimer']) end)
+        Connections['WebhookTimer'] = nil
+    end
+    
+    -- Send final webhook
+    SendFarmWebhook()
+    
+    local accountType = isMainAccount and "main" or "alt"
+    SendWebhook(
+        "stopped",
+        string.format("%s | %s\n\nstopped", LocalPlayer.Name, accountType),
+        16711680
+    )
+end
+
+local function EnableDesync()
+    if desyncActive then return end
+    local success = pcall(function() setfflag("NextGenReplicatorEnabledWrite4", "True") end)
+    if success then
+        task.wait(0.1)
+        local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then humanoid:ChangeState(Enum.HumanoidStateType.Dead) end
+        
+        if Connections['DesyncRespawn'] then Connections['DesyncRespawn']:Disconnect() end
+        Connections['DesyncRespawn'] = LocalPlayer.CharacterAdded:Connect(function(newCharacter)
+            if not desyncEnabled then
+                if Connections['DesyncRespawn'] then
+                    Connections['DesyncRespawn']:Disconnect()
+                    Connections['DesyncRespawn'] = nil
+                end
+                return
+            end
+            task.wait(0.5)
+            pcall(function() setfflag("NextGenReplicatorEnabledWrite4", "False") end)
+            task.wait(0.1)
+            pcall(function() setfflag("NextGenReplicatorEnabledWrite4", "True") end)
+            desyncActive = true
+        end)
+    else
+        desyncEnabled = false
+        return false
+    end
+    return true
+end
+
+local function DisableDesync()
+    desyncEnabled, desyncActive = false, false
+    if Connections['DesyncRespawn'] then
+        Connections['DesyncRespawn']:Disconnect()
+        Connections['DesyncRespawn'] = nil
+    end
+    pcall(function() setfflag("NextGenReplicatorEnabledWrite4", "False") end)
+end
+
+local function ResetCharacter()
+    local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildWhichIsA("Humanoid")
+    if humanoid then
+        humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+    end
+end
+
+-- Auto Skip Bans Function (works for both alt and main)
+local function SetupAutoSkipBans()
+    task.spawn(function()
+        task.wait(2)
+        local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+        
+        if Connections['AutoSkipBans'] then
+            Connections['AutoSkipBans']:Disconnect()
+        end
+        
+        Connections['AutoSkipBans'] = PlayerGui.ChildAdded:Connect(function(Child)
+            task.wait()
+            
+            if not autoSkipBansEnabled then return end
+            
+            pcall(function()
+                if Child.Name == 'BanChooser' then
+                    local RemoteEvent = Child:FindFirstChild('Communicate', true)
+                    if RemoteEvent then
+                        RemoteEvent:FireServer('pass')
+                        print("[xes] auto-skipped character ban")
+                    end
+                elseif Child.Name == 'MapBan' then
+                    task.wait(.5)
+                    for _, v in pairs(Child.Frame.Maps:GetChildren()) do
+                        if v:FindFirstChild('Title') then
+                            local MapBanner = ReplicatedStorage:FindFirstChild("MapBanner")
+                            if MapBanner then
+                                MapBanner:FireServer(v.Title.Text)
+                                print("[xes] auto-skipped map ban")
+                            end
+                            break
+                        end
+                    end
+                end
+            end)
+        end)
+    end)
+end
+
+-- Nanami Auto Handler
+local OriginalNanamiFunction = nil
+
+local function EnableAutoNanami()
+    pcall(function()
+        local NanamiEvent = ReplicatedStorage:FindFirstChild("NanamiCheck")
+        if not NanamiEvent then 
+            warn("[xes] NanamiCheck event not found")
+            return 
+        end
+        
+        -- Store original function if it exists
+        if NanamiEvent.OnClientInvoke and not OriginalNanamiFunction then
+            OriginalNanamiFunction = NanamiEvent.OnClientInvoke
+        end
+        
+        local CutGUI = ReplicatedStorage:FindFirstChild("NanamiCutGUI")
+        if not CutGUI then 
+            warn("[xes] NanamiCutGUI not found")
+            return 
+        end
+        
+        local Live = workspace:WaitForChild('Live')
+        
+        NanamiEvent.OnClientInvoke = function(Target, TimeDur, User)
+            -- If auto is disabled, use original function or return false
+            if not autoNanamiEnabled then
+                if OriginalNanamiFunction then
+                    return OriginalNanamiFunction(Target, TimeDur, User)
+                end
+                return false
+            end
+            
+            -- Safety checks
+            if not Target or not User or not TimeDur then
+                return false
+            end
+            
+            if not Live:FindFirstChild(Target.Name) then
+                return false
+            end
+            
+            local success, result = pcall(function()
+                local TempGUI = CutGUI:Clone()
+                TempGUI.MainBar.Rotation = -80
+                TempGUI.Parent = Live[Target.Name].HumanoidRootPart
+                TempGUI.Adornee = Live[Target.Name].HumanoidRootPart
+                local MainBar = TempGUI.MainBar
+                local Cutter = MainBar.Cutter
+                local Temp1, Temp2, Temp3 = false, false, false
+                
+                local InputConnection = UserInputService.InputBegan:Connect(function(InputObject)
+                    if not Temp1 then
+                        if InputObject.UserInputType == Enum.UserInputType.MouseButton1 or InputObject.KeyCode == Enum.KeyCode.ButtonB then
+                            if Temp2 then
+                                Temp3 = true
+                                return
+                            end
+                            Temp1 = true
+                        end
+                    end
+                end)
+                
+                local Counter = .005
+                local Time = 0
+                while Counter < 1 and (User:GetAttribute('NANAMIAIM') and not (Temp3 or Temp1)) do
+                    local Timed = task.wait()
+                    local Division = Timed / TimeDur
+                    local Difference = math.abs(.7 - Counter)
+                    if Counter < .7 then
+                        MainBar.Rotation = Counter/.7*80-80
+                    else
+                        MainBar.Rotation = 0
+                    end
+                    if Difference < .025 then
+                        Division = Division / 8
+                    elseif Difference < .05 then
+                        Division = Division / 4
+                    end
+                    Counter = Counter + Division
+                    Cutter.Position = UDim2.fromScale(Counter, .5)
+                    if Difference < .02 then
+                        Temp2 = true
+                        Temp3 = true
+                    else
+                        Temp2 = false
+                    end
+                    if Temp2 then
+                        Time = Time + Timed
+                    end
+                end
+                InputConnection:Disconnect()
+                
+                if Temp3 and User:GetAttribute('NANAMIAIM') then
+                    Cutter.Position = UDim2.fromScale(.7, .5)
+                    TweenService:Create(TempGUI, TweenInfo.new(.25), {['Size'] = UDim2.new(10,200,10,200)}):Play()
+                    Cutter.Size = UDim2.fromScale(.016, 12)
+                    TweenService:Create(Cutter, TweenInfo.new(0.5, Enum.EasingStyle.Linear), {
+                        ['Size'] = UDim2.fromScale(0, 24);
+                        ['BackgroundColor3'] = Color3.new(1,0,0);
+                        ['BackgroundTransparency'] = 1
+                    }):Play()
+                    local ColorCorrection = Instance.new("ColorCorrectionEffect", game.Lighting)
+                    ColorCorrection.TintColor = Color3.new(0,0,0)
+                    Debris:AddItem(ColorCorrection, .15)
+                end
+                Debris:AddItem(TempGUI, .5)
+                return Temp3
+            end)
+            
+            if not success then
+                warn("[xes] Nanami error:", result)
+                return false
+            end
+            
+            return result
+        end
+        
+        print("[xes] Auto Nanami enabled")
+    end)
+end
+
+local function DisableAutoNanami()
+    pcall(function()
+        local NanamiEvent = ReplicatedStorage:FindFirstChild("NanamiCheck")
+        if NanamiEvent and OriginalNanamiFunction then
+            NanamiEvent.OnClientInvoke = OriginalNanamiFunction
+            print("[xes] Auto Nanami disabled")
+        end
+    end)
+end
+
+-- Black Flash Auto Handler
+local OriginalBlackFlashFunction = nil
+
+local function EnableAutoBlackFlash()
+    pcall(function()
+        local BlackFlashEvent = ReplicatedStorage:FindFirstChild("BlackFlashCheck")
+        if not BlackFlashEvent then 
+            warn("[xes] BlackFlashCheck event not found")
+            return 
+        end
+        
+        -- Store original function if it exists
+        if BlackFlashEvent.OnClientInvoke and not OriginalBlackFlashFunction then
+            OriginalBlackFlashFunction = BlackFlashEvent.OnClientInvoke
+        end
+        
+        local Camera = workspace.CurrentCamera
+        
+        BlackFlashEvent.OnClientInvoke = function(p90, p91)
+            -- If auto is disabled, use original function or return false
+            if not autoBlackFlashEnabled then
+                if OriginalBlackFlashFunction then
+                    return OriginalBlackFlashFunction(p90, p91)
+                end
+                return false
+            end
+            
+            local success, result = pcall(function()
+                local v92 = p90 - p91
+                TweenService:Create(Camera, TweenInfo.new(v92, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {
+                    ["FieldOfView"] = 6
+                }):Play()
+                
+                local v_u_94 = false
+                local v_u_95 = false
+                local v_u_96 = false
+                
+                local v98 = UserInputService.InputBegan:Connect(function(p97)
+                    if not v_u_94 then
+                        if p97.UserInputType == Enum.UserInputType.MouseButton1 or p97.KeyCode == Enum.KeyCode.ButtonB then
+                            if v_u_95 then
+                                v_u_96 = true
+                                return
+                            end
+                            v_u_94 = true
+                        end
+                    end
+                end)
+                
+                wait(v92)
+                v_u_95 = true
+                
+                if p91 <= 0 then
+                    Camera.FieldOfView = 70
+                    task.spawn(function()
+                        wait(0.1)
+                        Camera.FieldOfView = 70
+                    end)
+                    v98:Disconnect()
+                    return false
+                end
+                
+                TweenService:Create(Camera, TweenInfo.new(p91), {
+                    ["FieldOfView"] = 70
+                }):Play()
+                
+                wait(p91)
+                Camera.FieldOfView = 70
+                task.spawn(function()
+                    wait(0.1)
+                    Camera.FieldOfView = 70
+                end)
+                
+                v_u_95 = false
+                v98:Disconnect()
+                
+                return (autoBlackFlashEnabled or v_u_96)
+            end)
+            
+            if not success then
+                warn("[xes] Black Flash error:", result)
+                return false
+            end
+            
+            return result
+        end
+        
+        print("[xes] Auto Black Flash enabled")
+    end)
+end
+
+local function DisableAutoBlackFlash()
+    pcall(function()
+        local BlackFlashEvent = ReplicatedStorage:FindFirstChild("BlackFlashCheck")
+        if BlackFlashEvent and OriginalBlackFlashFunction then
+            BlackFlashEvent.OnClientInvoke = OriginalBlackFlashFunction
+            print("[xes] Auto Black Flash disabled")
+        end
+    end)
+end
+
+print("[xes] loaded")
+
+local Window = Rayfield:CreateWindow({
+    Name = "xes",
+    LoadingTitle = "xes",
+    LoadingSubtitle = "init",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = nil,
+        FileName = "xes"
+    },
+    Discord = {
+        Enabled = false,
+        Invite = "",
+        RememberJoins = false
+    },
+    KeySystem = false
+})
+
+local MainTab = Window:CreateTab("ranked farm", 4483362458)
+
+local FarmSection = MainTab:CreateSection("modes")
+
+local AltToggle = MainTab:CreateToggle({
+    Name = "alt mode",
+    CurrentValue = false,
+    Flag = "Alt",
+    Callback = function(Value)
+        isAltAccount = Value
+        isMainAccount = false
+        
+        if Value then
+            StartFarming()
+            
+            -- Start alt mode reset loop
+            if not Connections['AltReset'] then
+                Connections['AltReset'] = task.spawn(function()
+                    while isAltAccount do
+                        task.wait(1)
+                        pcall(ResetCharacter)
+                    end
+                end)
+            end
+        else
+            StopFarming()
+            
+            -- Stop alt mode reset loop
+            if Connections['AltReset'] then
+                pcall(function() task.cancel(Connections['AltReset']) end)
+                Connections['AltReset'] = nil
+            end
+        end
+    end,
+})
+
+local MainToggle = MainTab:CreateToggle({
+    Name = "main mode",
+    CurrentValue = false,
+    Flag = "Main",
+    Callback = function(Value)
+        isMainAccount = Value
+        isAltAccount = false
+        
+        if Value then
+            StartFarming()
+        else
+            StopFarming()
+        end
+    end,
+})
+
+local DesyncSection = MainTab:CreateSection("network")
+
+local DesyncToggle = MainTab:CreateToggle({
+    Name = "desync",
+    CurrentValue = false,
+    Flag = "Desync",
+    Callback = function(Value)
+        desyncEnabled = Value
+        if Value then
+            EnableDesync()
+        else
+            DisableDesync()
+        end
+    end,
+})
+
+local SettingsTab = Window:CreateTab("config", 4483362458)
+
+local RenderSection = SettingsTab:CreateSection("performance")
+
+local Render3DToggle = SettingsTab:CreateToggle({
+    Name = "disable 3d render",
+    CurrentValue = false,
+    Flag = "Render3D",
+    Callback = function(Value)
+        if Value then
+            RunService:Set3dRenderingEnabled(false)
+            print("[xes] 3d rendering off")
+        else
+            RunService:Set3dRenderingEnabled(true)
+            print("[xes] 3d rendering on")
+        end
+    end,
+})
+
+local WebhookSection = SettingsTab:CreateSection("webhook")
+
+local WebhookInput = SettingsTab:CreateInput({
+    Name = "url",
+    PlaceholderText = "discord webhook",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(Text)
+        webhookUrl = Text
+        
+        if Text ~= "" and Text ~= "YOUR_WEBHOOK_URL_HERE" then
+            SendWebhook(
+                "connected",
+                string.format("%s\n\nconnected", LocalPlayer.Name),
+                5814783
+            )
+        end
+    end,
+})
+
+local WebhookTest = SettingsTab:CreateButton({
+    Name = "test",
+    Callback = function()
+        if webhookUrl == "" or webhookUrl == "YOUR_WEBHOOK_URL_HERE" then
+            print("[xes] no webhook set")
+        else
+            SendWebhook("test", "working", 3066993)
+        end
+    end,
+})
+
+local InfoSection = SettingsTab:CreateSection("status")
+local InfoLabel = SettingsTab:CreateLabel("afk bypass: active")
+local InfoLabel2 = SettingsTab:CreateLabel("auto rematch: active")
+local InfoLabel3 = SettingsTab:CreateLabel("auto skip bans: active")
+
+local CombatTab = Window:CreateTab("combat", 4483362458)
+
+local WarningSection = CombatTab:CreateSection("warning")
+local WarningLabel = CombatTab:CreateLabel("blatant features")
+
+local CombatSection = CombatTab:CreateSection("auto")
+
+local AutoNanamiToggle = CombatTab:CreateToggle({
+    Name = "nanami timing",
+    CurrentValue = false,
+    Flag = "Nanami",
+    Callback = function(Value)
+        autoNanamiEnabled = Value
+        
+        if Value then
+            EnableAutoNanami()
+        else
+            DisableAutoNanami()
+        end
+    end,
+})
+
+local PerfectBlackFlashToggle = CombatTab:CreateToggle({
+    Name = "black flash",
+    CurrentValue = false,
+    Flag = "BlackFlash",
+    Callback = function(Value)
+        autoBlackFlashEnabled = Value
+        
+        if Value then
+            EnableAutoBlackFlash()
+        else
+            DisableAutoBlackFlash()
+        end
+    end,
+})
+
+local AutoSkipBansToggle = CombatTab:CreateToggle({
+    Name = "skip bans",
+    CurrentValue = true,
+    Flag = "SkipBans",
+    Callback = function(Value)
+        autoSkipBansEnabled = Value
+    end,
+})
+
+-- Initialize auto skip bans (works for all modes)
+SetupAutoSkipBans()
+
+Rayfield:LoadConfiguration()
