@@ -1208,6 +1208,13 @@ local AutoAttackToggle = GoldFarmTab:CreateToggle({
     end,
 })
 
+-- Auto G always running
+task.spawn(function()
+    while task.wait(0.1) do
+        spamG()
+    end
+end)
+
 local SkillsSection = GoldFarmTab:CreateSection("auto skills")
 
 local Skill1Toggle = GoldFarmTab:CreateToggle({
