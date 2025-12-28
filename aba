@@ -1179,19 +1179,30 @@ local LockOnToggle = GoldFarmTab:CreateToggle({
     end,
 })
 
-local AutoAttackKeybind = GoldFarmTab:CreateKeybind({
+local AutoAttackToggle = GoldFarmTab:CreateToggle({
     Name = "auto attack (m1)",
-    CurrentKeybind = "LeftAlt",
-    HoldToInteract = false,
+    CurrentValue = false,
     Flag = "AutoAttack",
-    Callback = function(Keybind)
-        autoAttackEnabled = not autoAttackEnabled
+    Callback = function(Value)
+        autoAttackEnabled = Value
         
-        if autoAttackEnabled then
-            -- Hold down left mouse button
-            mouse1press()
+        if Value then
+            if Connections['AutoAttack'] then
+                Connections['AutoAttack']:Disconnect()
+            end
+            
+            Connections['AutoAttack'] = task.spawn(function()
+                while autoAttackEnabled do
+                    mouse1press()
+                    task.wait(0.1)
+                end
+                mouse1release()
+            end)
         else
-            -- Release left mouse button
+            if Connections['AutoAttack'] then
+                pcall(function() task.cancel(Connections['AutoAttack']) end)
+                Connections['AutoAttack'] = nil
+            end
             mouse1release()
         end
     end,
