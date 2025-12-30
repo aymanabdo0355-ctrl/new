@@ -692,6 +692,7 @@ local TargetSection = GoldFarmTab:CreateSection("target selection")
 local goldFarmEnabled = false
 local lockOnEnabled = false
 local autoAttackEnabled = false
+local autoGEnabled = false
 local selectedTarget = "Nearest Player"
 local farmDistance = 6
 local heightOffset = 2
@@ -1011,12 +1012,32 @@ local AutoAttackToggle = GoldFarmTab:CreateToggle({
     end,
 })
 
--- Auto G always running
-task.spawn(function()
-    while task.wait(0.1) do
-        spamG()
-    end
-end)
+local AutoGToggle = GoldFarmTab:CreateToggle({
+    Name = "auto g",
+    CurrentValue = false,
+    Flag = "AutoG",
+    Callback = function(Value)
+        autoGEnabled = Value
+        
+        if Value then
+            if Connections['AutoG'] then
+                Connections['AutoG']:Disconnect()
+            end
+            
+            Connections['AutoG'] = task.spawn(function()
+                while autoGEnabled do
+                    spamG()
+                    task.wait(0.1)
+                end
+            end)
+        else
+            if Connections['AutoG'] then
+                pcall(function() task.cancel(Connections['AutoG']) end)
+                Connections['AutoG'] = nil
+            end
+        end
+    end,
+})
 
 local SkillsSection = GoldFarmTab:CreateSection("auto skills")
 
