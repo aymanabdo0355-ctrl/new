@@ -2,6 +2,7 @@
     Xes Hub - ABA Script
     UI: Rayfield
     Complete Version with Farm Overlay + Gold Farm
+    FIXES: Auto M1, Rematch Spam, Ban Skipping
 ]] 
 
 local Players = game:GetService("Players")
@@ -42,9 +43,9 @@ LocalPlayer.Idled:Connect(function()
     VirtualUser:ClickButton2(Vector2.new())
 end)
 
--- Auto Rematch
+-- Auto Rematch - FIXED: Continuous spamming
 task.spawn(function()
-    while task.wait(1) do
+    while task.wait(0.5) do -- Reduced to 0.5 seconds for faster spamming
         pcall(function()
             local rematchEvent = ReplicatedStorage:FindFirstChild("RematchVote")
             if rematchEvent and (isAltAccount or isMainAccount) then
@@ -452,7 +453,7 @@ local function ResetCharacter()
     end
 end
 
--- Auto Skip Bans Function (works for both alt and main)
+-- Auto Skip Bans Function - FIXED: More aggressive checking
 local function SetupAutoSkipBans()
     task.spawn(function()
         task.wait(2)
@@ -462,10 +463,11 @@ local function SetupAutoSkipBans()
             Connections['AutoSkipBans']:Disconnect()
         end
         
+        -- ChildAdded connection
         Connections['AutoSkipBans'] = PlayerGui.ChildAdded:Connect(function(Child)
-            task.wait()
-            
             if not autoSkipBansEnabled then return end
+            
+            task.wait(0.1)
             
             pcall(function()
                 if Child.Name == 'BanChooser' then
@@ -488,6 +490,41 @@ local function SetupAutoSkipBans()
                     end
                 end
             end)
+        end)
+        
+        -- Additional continuous check every 0.5 seconds
+        task.spawn(function()
+            while task.wait(0.5) do
+                if not autoSkipBansEnabled then continue end
+                
+                pcall(function()
+                    -- Check for BanChooser
+                    local banChooser = PlayerGui:FindFirstChild('BanChooser')
+                    if banChooser then
+                        local RemoteEvent = banChooser:FindFirstChild('Communicate', true)
+                        if RemoteEvent then
+                            RemoteEvent:FireServer('pass')
+                            print("[xes] auto-skipped character ban (continuous check)")
+                        end
+                    end
+                    
+                    -- Check for MapBan
+                    local mapBan = PlayerGui:FindFirstChild('MapBan')
+                    if mapBan then
+                        task.wait(0.5)
+                        for _, v in pairs(mapBan.Frame.Maps:GetChildren()) do
+                            if v:FindFirstChild('Title') then
+                                local MapBanner = ReplicatedStorage:FindFirstChild("MapBanner")
+                                if MapBanner then
+                                    MapBanner:FireServer(v.Title.Text)
+                                    print("[xes] auto-skipped map ban (continuous check)")
+                                end
+                                break
+                            end
+                        end
+                    end
+                end)
+            end
         end)
     end)
 end
@@ -787,6 +824,7 @@ local function lookAtTarget(target)
     Camera.CFrame = CFrame.lookAt(Camera.CFrame.Position, targetPos)
 end
 
+-- FIXED: Auto Attack now uses proper remote instead of mouse1press
 local function attackTarget()
     pcall(function()
         if LocalPlayer.Character then
@@ -983,6 +1021,7 @@ local LockOnToggle = GoldFarmTab:CreateToggle({
     end,
 })
 
+-- FIXED: Auto Attack uses proper remote instead of mouse1press
 local AutoAttackToggle = GoldFarmTab:CreateToggle({
     Name = "auto attack (m1)",
     CurrentValue = false,
@@ -997,17 +1036,15 @@ local AutoAttackToggle = GoldFarmTab:CreateToggle({
             
             Connections['AutoAttack'] = task.spawn(function()
                 while autoAttackEnabled do
-                    mouse1press()
+                    attackTarget() -- Uses the proper remote now
                     task.wait(0.1)
                 end
-                mouse1release()
             end)
         else
             if Connections['AutoAttack'] then
                 pcall(function() task.cancel(Connections['AutoAttack']) end)
                 Connections['AutoAttack'] = nil
             end
-            mouse1release()
         end
     end,
 })
