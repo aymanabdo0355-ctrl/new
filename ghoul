@@ -43,13 +43,24 @@ LocalPlayer.Idled:Connect(function()
     VirtualUser:ClickButton2(Vector2.new())
 end)
 
--- Auto Rematch - FIXED: Continuous spamming
+-- Auto Rematch - FIXED: Always active, ultra aggressive continuous spamming
 task.spawn(function()
-    while task.wait(0.5) do -- Reduced to 0.5 seconds for faster spamming
+    while task.wait(0.1) do -- Very fast spamming every 0.1 seconds
         pcall(function()
+            -- Try multiple possible rematch remote names
             local rematchEvent = ReplicatedStorage:FindFirstChild("RematchVote")
-            if rematchEvent and (isAltAccount or isMainAccount) then
+            if rematchEvent then
                 rematchEvent:FireServer()
+            end
+            
+            local rematch = ReplicatedStorage:FindFirstChild("Rematch")
+            if rematch then
+                rematch:FireServer()
+            end
+            
+            local voteRematch = ReplicatedStorage:FindFirstChild("VoteRematch")
+            if voteRematch then
+                voteRematch:FireServer()
             end
         end)
     end
