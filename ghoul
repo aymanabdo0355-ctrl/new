@@ -1668,7 +1668,7 @@ local MiscTab = Window:CreateTab("misc", 4483362458)
 
 local DashesSection = MiscTab:CreateSection("Dashes")
 
-local DashesInfoLabel = MiscTab:CreateLabel("You can use all these dashes with any character reset to pick a new dash")
+local DashesInfoLabel = MiscTab:CreateLabel("You can use all these dashes with any character")
 
 local KiritsuguDashesToggle = MiscTab:CreateToggle({
     Name = "Kiritsugu Dashes",
