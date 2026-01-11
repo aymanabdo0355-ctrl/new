@@ -1,7 +1,7 @@
 --[[ 
     Xes Hub - ABA Script
     UI: Rayfield
-    Complete Version with Farm Overlay + Gold Farm
+    Complete Version with Farm Overlay + Gold Farm + Exploits
     FIXES: Auto M1, Rematch Spam, Ban Skipping
 ]] 
 
@@ -1166,6 +1166,229 @@ local Skill4DistanceSlider = GoldFarmTab:CreateSlider({
     Flag = "Skill4Distance",
     Callback = function(Value)
         skill4Distance = Value
+    end,
+})
+
+-- Exploits Tab
+local ExploitsTab = Window:CreateTab("exploits", 4483362458)
+
+-- Projectile variables - always enabled
+local characterProjectiles = {
+    YusukeSpiritGun = false,
+    YusukeDevilGun = false,
+    DekuDelawareSmash = false,
+    GojoHollowPurple = false,
+    NarutoFireball = false,
+    RengokuFlamingTiger = false,
+    FireSkill = false,
+    Misaka = false,
+    Bakugo = false,
+    KazumaSniper = false,
+    BrolyEraser = false,
+    GaaraTsunami = false,
+    KisameShark = false,
+    JosephHamon = false,
+    OldJosephBarrel = false,
+    OldJosephJeep = false,
+}
+
+local function runProjectile(obj)
+    local shouldManipulate = false
+    
+    -- Ball projectiles
+    if obj.Name == "Ball" then
+        if characterProjectiles.YusukeSpiritGun or 
+           characterProjectiles.YusukeDevilGun or
+           characterProjectiles.DekuDelawareSmash or
+           characterProjectiles.GojoHollowPurple or
+           characterProjectiles.NarutoFireball or
+           characterProjectiles.RengokuFlamingTiger then
+            shouldManipulate = true
+        end
+    -- EraserBlow (Broly)
+    elseif obj.Name == "EraserBlow" and characterProjectiles.BrolyEraser then
+        shouldManipulate = true
+    -- Coolljamie13Fire
+    elseif obj.Name == "Coolljamie13Fire" and characterProjectiles.FireSkill then
+        shouldManipulate = true
+    -- Coin (Misaka)
+    elseif obj.Name == "Coin" and characterProjectiles.Misaka then
+        shouldManipulate = true
+    -- GauntletBlast (Bakugo)
+    elseif obj.Name == "GauntletBlast" and characterProjectiles.Bakugo then
+        shouldManipulate = true
+    -- Soru
+    elseif obj.Name == "Soru" then
+        shouldManipulate = true
+    -- Model
+    elseif obj.Name == "Model" then
+        shouldManipulate = true
+    -- KazumaArrow (Kazuma)
+    elseif obj.Name == "KazumaArrow" and characterProjectiles.KazumaSniper then
+        shouldManipulate = true
+    -- Tsunami (Gaara)
+    elseif obj.Name == "Tsunami" and characterProjectiles.GaaraTsunami then
+        shouldManipulate = true
+    -- Shark (Kisame)
+    elseif obj.Name == "Shark" and characterProjectiles.KisameShark then
+        shouldManipulate = true
+    -- HamonCap (Joseph)
+    elseif obj.Name == "HamonCap" and characterProjectiles.JosephHamon then
+        shouldManipulate = true
+    -- Barrel (Old Joseph)
+    elseif obj.Name == "Barrel" and characterProjectiles.OldJosephBarrel then
+        shouldManipulate = true
+    -- Jeep (Old Joseph)
+    elseif obj.Name == "Jeep" and characterProjectiles.OldJosephJeep then
+        shouldManipulate = true
+    end
+    
+    if not shouldManipulate then return end
+
+    for _, v in ipairs(obj:GetDescendants()) do
+        if v:IsA("BodyVelocity") then
+            v.Velocity = Vector3.zero
+        end
+    end
+
+    if obj:IsA("BasePart") then
+        obj.AssemblyLinearVelocity = Vector3.zero
+        obj.AssemblyAngularVelocity = Vector3.zero
+    end
+
+    task.spawn(function()
+        local Live = workspace:WaitForChild("Live")
+        while obj.Parent do
+            for _, target in ipairs(Live:GetChildren()) do
+                if not obj.Parent then return end
+
+                local hit = target:IsA("Model") and target.PrimaryPart or target:IsA("BasePart") and target
+
+                if hit then
+                    if obj:IsA("Model") then
+                        obj:PivotTo(hit.CFrame)
+                    else
+                        obj.CFrame = hit.CFrame
+                    end
+                    task.wait()
+                end
+            end
+        end
+    end)
+end
+
+local function setupProjectileListener()
+    if Connections['ProjectileListener'] then
+        Connections['ProjectileListener']:Disconnect()
+    end
+    
+    local Thrown = workspace:WaitForChild("Thrown")
+    
+    for _, obj in ipairs(Thrown:GetChildren()) do
+        runProjectile(obj)
+    end
+    
+    Connections['ProjectileListener'] = Thrown.ChildAdded:Connect(runProjectile)
+end
+
+setupProjectileListener()
+
+local SpiritGunSection = ExploitsTab:CreateSection("Spirit Gun")
+
+local YusukeToggle = ExploitsTab:CreateToggle({
+    Name = "Yusuke Spirit Gun Auto Track",
+    CurrentValue = false,
+    Flag = "YusukeSpirit",
+    Callback = function(Value)
+        characterProjectiles.YusukeSpiritGun = Value
+    end,
+})
+
+local DekuSection = ExploitsTab:CreateSection("Deku")
+
+local DekuToggle = ExploitsTab:CreateToggle({
+    Name = "Deku | Delaware Smash",
+    CurrentValue = false,
+    Flag = "DekuDelaware",
+    Callback = function(Value)
+        characterProjectiles.DekuDelawareSmash = Value
+    end,
+})
+
+local GojoSection = ExploitsTab:CreateSection("Gojo")
+
+local GojoToggle = ExploitsTab:CreateToggle({
+    Name = "Gojo | Hollow Purple",
+    CurrentValue = false,
+    Flag = "GojoHollow",
+    Callback = function(Value)
+        characterProjectiles.GojoHollowPurple = Value
+    end,
+})
+
+local FireSkillSection = ExploitsTab:CreateSection("Fire Skill")
+
+local FireToggle = ExploitsTab:CreateToggle({
+    Name = "Fire | Itachi | Shisui | Rengoku",
+    CurrentValue = false,
+    Flag = "FireSkill",
+    Callback = function(Value)
+        characterProjectiles.FireSkill = Value
+    end,
+})
+
+local MisakaSection = ExploitsTab:CreateSection("Misaka")
+
+local MisakaToggle = ExploitsTab:CreateToggle({
+    Name = "Misaka | Coin (Bugged)",
+    CurrentValue = false,
+    Flag = "MisakaCoin",
+    Callback = function(Value)
+        characterProjectiles.Misaka = Value
+    end,
+})
+
+local BakugoSection = ExploitsTab:CreateSection("Bakugo")
+
+local BakugoToggle = ExploitsTab:CreateToggle({
+    Name = "Bakugo | Gauntlet Blast",
+    CurrentValue = false,
+    Flag = "BakugoGauntlet",
+    Callback = function(Value)
+        characterProjectiles.Bakugo = Value
+    end,
+})
+
+local BrolySection = ExploitsTab:CreateSection("Broly")
+
+local BrolyToggle = ExploitsTab:CreateToggle({
+    Name = "Broly | Eraser Blow",
+    CurrentValue = false,
+    Flag = "BrolyEraser",
+    Callback = function(Value)
+        characterProjectiles.BrolyEraser = Value
+    end,
+})
+
+local KazumaSection = ExploitsTab:CreateSection("Kazuma")
+
+local KazumaToggle = ExploitsTab:CreateToggle({
+    Name = "Kazuma | Sniper Arrow",
+    CurrentValue = false,
+    Flag = "KazumaSniper",
+    Callback = function(Value)
+        characterProjectiles.KazumaSniper = Value
+    end,
+})
+
+local GaaraSection = ExploitsTab:CreateSection("Gaara")
+
+local GaaraToggle = ExploitsTab:CreateToggle({
+    Name = "Gaara | Tsunami",
+    CurrentValue = false,
+    Flag = "GaaraTsunami",
+    Callback = function(Value)
+        characterProjectiles.GaaraTsunami = Value
     end,
 })
 
