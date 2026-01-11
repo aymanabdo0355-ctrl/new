@@ -546,6 +546,7 @@ local Window = Rayfield:CreateWindow({
     Name = "xes",
     LoadingTitle = "xes",
     LoadingSubtitle = "init",
+    Theme = "Light",
     ConfigurationSaving = {
         Enabled = false,
         FolderName = nil,
@@ -1186,6 +1187,14 @@ local characterProjectiles = {
     KazumaSniper = false,
     BrolyEraser = false,
     GaaraTsunami = false,
+    SinonArrow = false,
+    GojoBlueUlt = false,
+    AcceleratorQuake = false,
+    AkainuFist = false,
+    SuperDummyKillBlock = false,
+    BrolyMeteor = false,
+    JosephJeep = false,
+    JosephBarrel = false,
     KisameShark = false,
     JosephHamon = false,
     OldJosephBarrel = false,
@@ -1202,9 +1211,25 @@ local function runProjectile(obj)
            characterProjectiles.DekuDelawareSmash or
            characterProjectiles.GojoHollowPurple or
            characterProjectiles.NarutoFireball or
-           characterProjectiles.RengokuFlamingTiger then
+           characterProjectiles.RengokuFlamingTiger or
+           characterProjectiles.AcceleratorQuake then
             shouldManipulate = true
         end
+    -- Fist (Akainu)
+    elseif obj.Name == "Fist" and characterProjectiles.AkainuFist then
+        shouldManipulate = true
+    -- Part (Super Dummy Kill Block)
+    elseif obj.Name == "Part" and characterProjectiles.SuperDummyKillBlock then
+        shouldManipulate = true
+    -- Genki (Broly Meteor Shower)
+    elseif obj.Name == "Genki" and characterProjectiles.BrolyMeteor then
+        shouldManipulate = true
+    -- Jeep (Joseph)
+    elseif obj.Name == "Jeep" and characterProjectiles.JosephJeep then
+        shouldManipulate = true
+    -- Barrel (Joseph Barrel)
+    elseif obj.Name == "Barrel" and characterProjectiles.JosephBarrel then
+        shouldManipulate = true
     -- EraserBlow (Broly)
     elseif obj.Name == "EraserBlow" and characterProjectiles.BrolyEraser then
         shouldManipulate = true
@@ -1228,6 +1253,12 @@ local function runProjectile(obj)
         shouldManipulate = true
     -- Tsunami (Gaara)
     elseif obj.Name == "Tsunami" and characterProjectiles.GaaraTsunami then
+        shouldManipulate = true
+    -- SinonSmallArrow, Sniper1, Sniper2 (Sinon)
+    elseif (obj.Name == "SinonSmallArrow" or obj.Name == "Sniper1" or obj.Name == "Sniper2") and characterProjectiles.SinonArrow then
+        shouldManipulate = true
+    -- GrabBallMax (Gojo Blue Ult)
+    elseif obj.Name == "GrabBallMax" and characterProjectiles.GojoBlueUlt then
         shouldManipulate = true
     -- Shark (Kisame)
     elseif obj.Name == "Shark" and characterProjectiles.KisameShark then
@@ -1389,6 +1420,139 @@ local GaaraToggle = ExploitsTab:CreateToggle({
     Flag = "GaaraTsunami",
     Callback = function(Value)
         characterProjectiles.GaaraTsunami = Value
+    end,
+})
+
+local SinonSection = ExploitsTab:CreateSection("Sinon")
+
+local SinonToggle = ExploitsTab:CreateToggle({
+    Name = "Sinon | Small Arrow",
+    CurrentValue = false,
+    Flag = "SinonArrow",
+    Callback = function(Value)
+        characterProjectiles.SinonArrow = Value
+    end,
+})
+
+local GojoBlueUltSection = ExploitsTab:CreateSection("Gojo Blue Ult")
+
+local GojoBlueUltToggle = ExploitsTab:CreateToggle({
+    Name = "Gojo | Blue Ult",
+    CurrentValue = false,
+    Flag = "GojoBlueUlt",
+    Callback = function(Value)
+        characterProjectiles.GojoBlueUlt = Value
+    end,
+})
+
+local AcceleratorSection = ExploitsTab:CreateSection("Accelerator")
+
+local AcceleratorToggle = ExploitsTab:CreateToggle({
+    Name = "Accelerator | Quake",
+    CurrentValue = false,
+    Flag = "AcceleratorQuake",
+    Callback = function(Value)
+        characterProjectiles.AcceleratorQuake = Value
+    end,
+})
+
+local AkainuSection = ExploitsTab:CreateSection("Akainu")
+
+local AkainuToggle = ExploitsTab:CreateToggle({
+    Name = "Akainu | Fist",
+    CurrentValue = false,
+    Flag = "AkainuFist",
+    Callback = function(Value)
+        characterProjectiles.AkainuFist = Value
+    end,
+})
+
+local SuperDummySection = ExploitsTab:CreateSection("Super Dummy")
+
+local SuperDummyToggle = ExploitsTab:CreateToggle({
+    Name = "Super Dummy | Kill Block",
+    CurrentValue = false,
+    Flag = "SuperDummyKillBlock",
+    Callback = function(Value)
+        characterProjectiles.SuperDummyKillBlock = Value
+    end,
+})
+
+local BrolyMeteorSection = ExploitsTab:CreateSection("Broly Meteor")
+
+local BrolyMeteorToggle = ExploitsTab:CreateToggle({
+    Name = "Broly | Meteor Shower",
+    CurrentValue = false,
+    Flag = "BrolyMeteor",
+    Callback = function(Value)
+        characterProjectiles.BrolyMeteor = Value
+    end,
+})
+
+local JosephSection = ExploitsTab:CreateSection("Joseph")
+
+local JosephToggle = ExploitsTab:CreateToggle({
+    Name = "Joseph | Jeep",
+    CurrentValue = false,
+    Flag = "JosephJeep",
+    Callback = function(Value)
+        characterProjectiles.JosephJeep = Value
+    end,
+})
+
+local JosephBarrelToggle = ExploitsTab:CreateToggle({
+    Name = "Joseph | Barrel",
+    CurrentValue = false,
+    Flag = "JosephBarrel",
+    Callback = function(Value)
+        characterProjectiles.JosephBarrel = Value
+    end,
+})
+
+local BakugoInfDashSection = ExploitsTab:CreateSection("Bakugo Abilities")
+
+local BakugoInfDashToggle = ExploitsTab:CreateToggle({
+    Name = "Bakugo | Infinite Dash",
+    CurrentValue = false,
+    Flag = "BakugoInfDash",
+    Callback = function(Value)
+        if Value then
+            if Connections['BakugoInfDash'] then
+                Connections['BakugoInfDash']:Disconnect()
+            end
+            
+            Connections['BakugoInfDash'] = task.spawn(function()
+                while task.wait(0.1) do
+                    if not Connections['BakugoInfDash'] then break end
+                    
+                    pcall(function()
+                        local args = {
+                            "dodge",
+                            {
+                                explod = Enum.KeyCode.W
+                            }
+                        }
+                        LocalPlayer:WaitForChild("Backpack"):WaitForChild("ServerTraits"):WaitForChild("Input"):FireServer(unpack(args))
+                    end)
+                end
+            end)
+        else
+            if Connections['BakugoInfDash'] then
+                pcall(function() task.cancel(Connections['BakugoInfDash']) end)
+                Connections['BakugoInfDash'] = nil
+            end
+        end
+    end,
+})
+
+local KisameSection = ExploitsTab:CreateSection("Kisame")
+
+local KisameToggle = ExploitsTab:CreateToggle({
+    Name = "Kisame | Search ANd DESTROY",
+    CurrentValue = false,
+    Flag = "KisameShark",
+    Callback = function(Value)
+        characterProjectiles.KisameShark = Value
     end,
 })
 
