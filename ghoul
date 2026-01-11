@@ -1195,6 +1195,7 @@ local characterProjectiles = {
     BrolyMeteor = false,
     JosephJeep = false,
     JosephBarrel = false,
+    WeatherReportTornado = false,
     KisameShark = false,
     JosephHamon = false,
     OldJosephBarrel = false,
@@ -1229,6 +1230,9 @@ local function runProjectile(obj)
         shouldManipulate = true
     -- Barrel (Joseph Barrel)
     elseif obj.Name == "Barrel" and characterProjectiles.JosephBarrel then
+        shouldManipulate = true
+    -- Nado (Weather Report Tornado)
+    elseif obj.Name == "Nado" and characterProjectiles.WeatherReportTornado then
         shouldManipulate = true
     -- EraserBlow (Broly)
     elseif obj.Name == "EraserBlow" and characterProjectiles.BrolyEraser then
@@ -1548,7 +1552,7 @@ local BakugoInfDashToggle = ExploitsTab:CreateToggle({
 local KisameSection = ExploitsTab:CreateSection("Kisame")
 
 local KisameToggle = ExploitsTab:CreateToggle({
-    Name = "Kisame | Shark Ult",
+    Name = "Kisame | Shark",
     CurrentValue = false,
     Flag = "KisameShark",
     Callback = function(Value)
@@ -1644,6 +1648,651 @@ local NanamiBlackFlashToggle = ExploitsTab:CreateToggle({
                 Debris:AddItem(TempGUI, .5)
                 return Temp3
             end
+        end
+    end,
+})
+
+local WeatherReportSection = ExploitsTab:CreateSection("Weather Report")
+
+local WeatherReportToggle = ExploitsTab:CreateToggle({
+    Name = "Weather Report | Tornado",
+    CurrentValue = false,
+    Flag = "WeatherReportTornado",
+    Callback = function(Value)
+        characterProjectiles.WeatherReportTornado = Value
+    end,
+})
+
+-- Misc Tab
+local MiscTab = Window:CreateTab("misc", 4483362458)
+
+local DashesSection = MiscTab:CreateSection("Dashes")
+
+local DashesInfoLabel = MiscTab:CreateLabel("You can use all these dashes with any character reset to pick a new dash")
+
+local KiritsuguDashesToggle = MiscTab:CreateToggle({
+    Name = "Kiritsugu Dashes",
+    CurrentValue = false,
+    Flag = "KiritsuguDashes",
+    Callback = function(Value)
+        if Value then
+            if Connections['KiritsuguDashes'] then
+                Connections['KiritsuguDashes']:Disconnect()
+            end
+            
+            Connections['KiritsuguDashes'] = task.spawn(function()
+                while task.wait(0.05) do
+                    if not Connections['KiritsuguDashes'] then break end
+                    
+                    pcall(function()
+                        -- Ensure Live exists
+                        local Live = workspace:FindFirstChild("Live")
+                        if not Live then
+                            Live = Instance.new("Folder")
+                            Live.Name = "Live"
+                            Live.Parent = workspace
+                        end
+                        
+                        -- Ensure ardrisworld exists
+                        local ardrisworld = Live:FindFirstChild("ardrisworld")
+                        if not ardrisworld then
+                            ardrisworld = Instance.new("Folder")
+                            ardrisworld.Name = "ardrisworld"
+                            ardrisworld.Parent = Live
+                        end
+                        
+                        -- Function to ensure AccelDodges exists
+                        local function ensureAccelDodges()
+                            if not ardrisworld:FindFirstChild("AccelDodges") then
+                                local accelDodges = Instance.new("Folder")
+                                accelDodges.Name = "AccelDodges"
+                                accelDodges.Parent = ardrisworld
+                            end
+                        end
+                        
+                        -- Initial check
+                        ensureAccelDodges()
+                        
+                        -- Re-create if deleted
+                        if not Connections['AccelDodgesListener'] then
+                            Connections['AccelDodgesListener'] = ardrisworld.ChildRemoved:Connect(function(child)
+                                if child.Name == "AccelDodges" and Connections['KiritsuguDashes'] then
+                                    task.wait()
+                                    ensureAccelDodges()
+                                end
+                            end)
+                        end
+                    end)
+                end
+            end)
+        else
+            if Connections['KiritsuguDashes'] then
+                pcall(function() task.cancel(Connections['KiritsuguDashes']) end)
+                Connections['KiritsuguDashes'] = nil
+            end
+            
+            if Connections['AccelDodgesListener'] then
+                Connections['AccelDodgesListener']:Disconnect()
+                Connections['AccelDodgesListener'] = nil
+            end
+            
+            -- Remove AccelDodges folder when disabled
+            pcall(function()
+                local Live = workspace:FindFirstChild("Live")
+                if Live then
+                    local ardrisworld = Live:FindFirstChild("ardrisworld")
+                    if ardrisworld then
+                        local accelDodges = ardrisworld:FindFirstChild("AccelDodges")
+                        if accelDodges then
+                            accelDodges:Destroy()
+                        end
+                    end
+                end
+            end)
+        end
+    end,
+})
+
+local UltraInstinctDashToggle = MiscTab:CreateToggle({
+    Name = "Ultra Instinct Dash",
+    CurrentValue = false,
+    Flag = "UltraInstinctDash",
+    Callback = function(Value)
+        if Value then
+            if Connections['UltraInstinctDash'] then
+                Connections['UltraInstinctDash']:Disconnect()
+            end
+            
+            Connections['UltraInstinctDash'] = task.spawn(function()
+                while task.wait(0.05) do
+                    if not Connections['UltraInstinctDash'] then break end
+                    
+                    pcall(function()
+                        -- Ensure Live exists
+                        local Live = workspace:FindFirstChild("Live")
+                        if not Live then
+                            Live = Instance.new("Folder")
+                            Live.Name = "Live"
+                            Live.Parent = workspace
+                        end
+                        
+                        -- Get the 33rd child
+                        local children = Live:GetChildren()
+                        local targetChild = children[33]
+                        
+                        if targetChild then
+                            -- Function to ensure UIDodge exists
+                            local function ensureUIDodge()
+                                if not targetChild:FindFirstChild("UIDodge") then
+                                    local uiDodge = Instance.new("Folder")
+                                    uiDodge.Name = "UIDodge"
+                                    uiDodge.Parent = targetChild
+                                end
+                            end
+                            
+                            -- Initial check
+                            ensureUIDodge()
+                            
+                            -- Re-create if deleted
+                            if not Connections['UIDodgeListener'] then
+                                Connections['UIDodgeListener'] = targetChild.ChildRemoved:Connect(function(child)
+                                    if child.Name == "UIDodge" and Connections['UltraInstinctDash'] then
+                                        task.wait()
+                                        ensureUIDodge()
+                                    end
+                                end)
+                            end
+                        end
+                    end)
+                end
+            end)
+        else
+            if Connections['UltraInstinctDash'] then
+                pcall(function() task.cancel(Connections['UltraInstinctDash']) end)
+                Connections['UltraInstinctDash'] = nil
+            end
+            
+            if Connections['UIDodgeListener'] then
+                Connections['UIDodgeListener']:Disconnect()
+                Connections['UIDodgeListener'] = nil
+            end
+            
+            -- Remove UIDodge folder when disabled
+            pcall(function()
+                local Live = workspace:FindFirstChild("Live")
+                if Live then
+                    local children = Live:GetChildren()
+                    local targetChild = children[33]
+                    if targetChild then
+                        local uiDodge = targetChild:FindFirstChild("UIDodge")
+                        if uiDodge then
+                            uiDodge:Destroy()
+                        end
+                    end
+                end
+            end)
+        end
+    end,
+})
+
+local FloatPassiveToggle = MiscTab:CreateToggle({
+    Name = "Float Passive",
+    CurrentValue = false,
+    Flag = "FloatPassive",
+    Callback = function(Value)
+        if Value then
+            if Connections['FloatPassive'] then
+                Connections['FloatPassive']:Disconnect()
+            end
+            
+            Connections['FloatPassive'] = task.spawn(function()
+                while task.wait(0.05) do
+                    if not Connections['FloatPassive'] then break end
+                    
+                    pcall(function()
+                        -- Ensure Live exists
+                        local Live = workspace:FindFirstChild("Live")
+                        if not Live then
+                            Live = Instance.new("Folder")
+                            Live.Name = "Live"
+                            Live.Parent = workspace
+                        end
+                        
+                        -- Get the 33rd child
+                        local children = Live:GetChildren()
+                        local targetChild = children[33]
+                        
+                        if targetChild then
+                            -- Function to ensure FLOATPASSIVE exists
+                            local function ensureFloatPassive()
+                                if not targetChild:FindFirstChild("FLOATPASSIVE") then
+                                    local floatPassive = Instance.new("Folder")
+                                    floatPassive.Name = "FLOATPASSIVE"
+                                    floatPassive.Parent = targetChild
+                                end
+                            end
+                            
+                            -- Initial check
+                            ensureFloatPassive()
+                            
+                            -- Re-create if deleted
+                            if not Connections['FloatPassiveListener'] then
+                                Connections['FloatPassiveListener'] = targetChild.ChildRemoved:Connect(function(child)
+                                    if child.Name == "FLOATPASSIVE" and Connections['FloatPassive'] then
+                                        task.wait()
+                                        ensureFloatPassive()
+                                    end
+                                end)
+                            end
+                        end
+                    end)
+                end
+            end)
+        else
+            if Connections['FloatPassive'] then
+                pcall(function() task.cancel(Connections['FloatPassive']) end)
+                Connections['FloatPassive'] = nil
+            end
+            
+            if Connections['FloatPassiveListener'] then
+                Connections['FloatPassiveListener']:Disconnect()
+                Connections['FloatPassiveListener'] = nil
+            end
+            
+            -- Remove FLOATPASSIVE folder when disabled
+            pcall(function()
+                local Live = workspace:FindFirstChild("Live")
+                if Live then
+                    local children = Live:GetChildren()
+                    local targetChild = children[33]
+                    if targetChild then
+                        local floatPassive = targetChild:FindFirstChild("FLOATPASSIVE")
+                        if floatPassive then
+                            floatPassive:Destroy()
+                        end
+                    end
+                end
+            end)
+        end
+    end,
+})
+
+local BakugoDashToggle = MiscTab:CreateToggle({
+    Name = "Bakugo Dash",
+    CurrentValue = false,
+    Flag = "BakugoDash",
+    Callback = function(Value)
+        if Value then
+            if Connections['BakugoDash'] then
+                Connections['BakugoDash']:Disconnect()
+            end
+            
+            Connections['BakugoDash'] = task.spawn(function()
+                while task.wait(0.05) do
+                    if not Connections['BakugoDash'] then break end
+                    
+                    pcall(function()
+                        local Live = workspace:FindFirstChild("Live")
+                        if not Live then
+                            Live = Instance.new("Folder")
+                            Live.Name = "Live"
+                            Live.Parent = workspace
+                        end
+                        
+                        local children = Live:GetChildren()
+                        local targetChild = children[33]
+                        
+                        if targetChild then
+                            local function ensureExplodDodge()
+                                if not targetChild:FindFirstChild("ExplodDodge") then
+                                    local explodDodge = Instance.new("Folder")
+                                    explodDodge.Name = "ExplodDodge"
+                                    explodDodge.Parent = targetChild
+                                end
+                            end
+                            
+                            ensureExplodDodge()
+                            
+                            if not Connections['ExplodDodgeListener'] then
+                                Connections['ExplodDodgeListener'] = targetChild.ChildRemoved:Connect(function(child)
+                                    if child.Name == "ExplodDodge" and Connections['BakugoDash'] then
+                                        task.wait()
+                                        ensureExplodDodge()
+                                    end
+                                end)
+                            end
+                        end
+                    end)
+                end
+            end)
+        else
+            if Connections['BakugoDash'] then
+                pcall(function() task.cancel(Connections['BakugoDash']) end)
+                Connections['BakugoDash'] = nil
+            end
+            
+            if Connections['ExplodDodgeListener'] then
+                Connections['ExplodDodgeListener']:Disconnect()
+                Connections['ExplodDodgeListener'] = nil
+            end
+            
+            pcall(function()
+                local Live = workspace:FindFirstChild("Live")
+                if Live then
+                    local children = Live:GetChildren()
+                    local targetChild = children[33]
+                    if targetChild then
+                        local explodDodge = targetChild:FindFirstChild("ExplodDodge")
+                        if explodDodge then
+                            explodDodge:Destroy()
+                        end
+                    end
+                end
+            end)
+        end
+    end,
+})
+
+local WuxianDashToggle = MiscTab:CreateToggle({
+    Name = "Wuxian Dash",
+    CurrentValue = false,
+    Flag = "WuxianDash",
+    Callback = function(Value)
+        if Value then
+            if Connections['WuxianDash'] then
+                Connections['WuxianDash']:Disconnect()
+            end
+            
+            Connections['WuxianDash'] = task.spawn(function()
+                while task.wait(0.05) do
+                    if not Connections['WuxianDash'] then break end
+                    
+                    pcall(function()
+                        local Live = workspace:FindFirstChild("Live")
+                        if not Live then
+                            Live = Instance.new("Folder")
+                            Live.Name = "Live"
+                            Live.Parent = workspace
+                        end
+                        
+                        local children = Live:GetChildren()
+                        local targetChild = children[33]
+                        
+                        if targetChild then
+                            local function ensureWuxianDodge()
+                                if not targetChild:FindFirstChild("WuxianDodge") then
+                                    local wuxianDodge = Instance.new("Folder")
+                                    wuxianDodge.Name = "WuxianDodge"
+                                    wuxianDodge.Parent = targetChild
+                                end
+                            end
+                            
+                            ensureWuxianDodge()
+                            
+                            if not Connections['WuxianDodgeListener'] then
+                                Connections['WuxianDodgeListener'] = targetChild.ChildRemoved:Connect(function(child)
+                                    if child.Name == "WuxianDodge" and Connections['WuxianDash'] then
+                                        task.wait()
+                                        ensureWuxianDodge()
+                                    end
+                                end)
+                            end
+                        end
+                    end)
+                end
+            end)
+        else
+            if Connections['WuxianDash'] then
+                pcall(function() task.cancel(Connections['WuxianDash']) end)
+                Connections['WuxianDash'] = nil
+            end
+            
+            if Connections['WuxianDodgeListener'] then
+                Connections['WuxianDodgeListener']:Disconnect()
+                Connections['WuxianDodgeListener'] = nil
+            end
+            
+            pcall(function()
+                local Live = workspace:FindFirstChild("Live")
+                if Live then
+                    local children = Live:GetChildren()
+                    local targetChild = children[33]
+                    if targetChild then
+                        local wuxianDodge = targetChild:FindFirstChild("WuxianDodge")
+                        if wuxianDodge then
+                            wuxianDodge:Destroy()
+                        end
+                    end
+                end
+            end)
+        end
+    end,
+})
+
+local GeppoDashToggle = MiscTab:CreateToggle({
+    Name = "Geppo Dash",
+    CurrentValue = false,
+    Flag = "GeppoDash",
+    Callback = function(Value)
+        if Value then
+            if Connections['GeppoDash'] then
+                Connections['GeppoDash']:Disconnect()
+            end
+            
+            Connections['GeppoDash'] = task.spawn(function()
+                while task.wait(0.05) do
+                    if not Connections['GeppoDash'] then break end
+                    
+                    pcall(function()
+                        local Live = workspace:FindFirstChild("Live")
+                        if not Live then
+                            Live = Instance.new("Folder")
+                            Live.Name = "Live"
+                            Live.Parent = workspace
+                        end
+                        
+                        local children = Live:GetChildren()
+                        local targetChild = children[33]
+                        
+                        if targetChild then
+                            local function ensureRokushiki()
+                                if not targetChild:FindFirstChild("ROKUSHIKI") then
+                                    local rokushiki = Instance.new("Folder")
+                                    rokushiki.Name = "ROKUSHIKI"
+                                    rokushiki.Parent = targetChild
+                                end
+                            end
+                            
+                            ensureRokushiki()
+                            
+                            if not Connections['RokushikiListener'] then
+                                Connections['RokushikiListener'] = targetChild.ChildRemoved:Connect(function(child)
+                                    if child.Name == "ROKUSHIKI" and Connections['GeppoDash'] then
+                                        task.wait()
+                                        ensureRokushiki()
+                                    end
+                                end)
+                            end
+                        end
+                    end)
+                end
+            end)
+        else
+            if Connections['GeppoDash'] then
+                pcall(function() task.cancel(Connections['GeppoDash']) end)
+                Connections['GeppoDash'] = nil
+            end
+            
+            if Connections['RokushikiListener'] then
+                Connections['RokushikiListener']:Disconnect()
+                Connections['RokushikiListener'] = nil
+            end
+            
+            pcall(function()
+                local Live = workspace:FindFirstChild("Live")
+                if Live then
+                    local children = Live:GetChildren()
+                    local targetChild = children[33]
+                    if targetChild then
+                        local rokushiki = targetChild:FindFirstChild("ROKUSHIKI")
+                        if rokushiki then
+                            rokushiki:Destroy()
+                        end
+                    end
+                end
+            end)
+        end
+    end,
+})
+
+local UssopDashToggle = MiscTab:CreateToggle({
+    Name = "Ussop Dash",
+    CurrentValue = false,
+    Flag = "UssopDash",
+    Callback = function(Value)
+        if Value then
+            if Connections['UssopDash'] then
+                Connections['UssopDash']:Disconnect()
+            end
+            
+            Connections['UssopDash'] = task.spawn(function()
+                while task.wait(0.05) do
+                    if not Connections['UssopDash'] then break end
+                    
+                    pcall(function()
+                        local Live = workspace:FindFirstChild("Live")
+                        if not Live then
+                            Live = Instance.new("Folder")
+                            Live.Name = "Live"
+                            Live.Parent = workspace
+                        end
+                        
+                        local children = Live:GetChildren()
+                        local targetChild = children[33]
+                        
+                        if targetChild then
+                            local function ensureUsopDodge()
+                                if not targetChild:FindFirstChild("UsopDodge") then
+                                    local usopDodge = Instance.new("Folder")
+                                    usopDodge.Name = "UsopDodge"
+                                    usopDodge.Parent = targetChild
+                                end
+                            end
+                            
+                            ensureUsopDodge()
+                            
+                            if not Connections['UsopDodgeListener'] then
+                                Connections['UsopDodgeListener'] = targetChild.ChildRemoved:Connect(function(child)
+                                    if child.Name == "UsopDodge" and Connections['UssopDash'] then
+                                        task.wait()
+                                        ensureUsopDodge()
+                                    end
+                                end)
+                            end
+                        end
+                    end)
+                end
+            end)
+        else
+            if Connections['UssopDash'] then
+                pcall(function() task.cancel(Connections['UssopDash']) end)
+                Connections['UssopDash'] = nil
+            end
+            
+            if Connections['UsopDodgeListener'] then
+                Connections['UsopDodgeListener']:Disconnect()
+                Connections['UsopDodgeListener'] = nil
+            end
+            
+            pcall(function()
+                local Live = workspace:FindFirstChild("Live")
+                if Live then
+                    local children = Live:GetChildren()
+                    local targetChild = children[33]
+                    if targetChild then
+                        local usopDodge = targetChild:FindFirstChild("UsopDodge")
+                        if usopDodge then
+                            usopDodge:Destroy()
+                        end
+                    end
+                end
+            end)
+        end
+    end,
+})
+
+local AwakeningDashToggle = MiscTab:CreateToggle({
+    Name = "Awakening Dash",
+    CurrentValue = false,
+    Flag = "AwakeningDash",
+    Callback = function(Value)
+        if Value then
+            if Connections['AwakeningDash'] then
+                Connections['AwakeningDash']:Disconnect()
+            end
+            
+            Connections['AwakeningDash'] = task.spawn(function()
+                while task.wait(0.05) do
+                    if not Connections['AwakeningDash'] then break end
+                    
+                    pcall(function()
+                        local Live = workspace:FindFirstChild("Live")
+                        if not Live then
+                            Live = Instance.new("Folder")
+                            Live.Name = "Live"
+                            Live.Parent = workspace
+                        end
+                        
+                        local children = Live:GetChildren()
+                        local targetChild = children[33]
+                        
+                        if targetChild then
+                            local function ensureVanish()
+                                if not targetChild:FindFirstChild("Vanish") then
+                                    local vanish = Instance.new("Folder")
+                                    vanish.Name = "Vanish"
+                                    vanish.Parent = targetChild
+                                end
+                            end
+                            
+                            ensureVanish()
+                            
+                            if not Connections['VanishListener'] then
+                                Connections['VanishListener'] = targetChild.ChildRemoved:Connect(function(child)
+                                    if child.Name == "Vanish" and Connections['AwakeningDash'] then
+                                        task.wait()
+                                        ensureVanish()
+                                    end
+                                end)
+                            end
+                        end
+                    end)
+                end
+            end)
+        else
+            if Connections['AwakeningDash'] then
+                pcall(function() task.cancel(Connections['AwakeningDash']) end)
+                Connections['AwakeningDash'] = nil
+            end
+            
+            if Connections['VanishListener'] then
+                Connections['VanishListener']:Disconnect()
+                Connections['VanishListener'] = nil
+            end
+            
+            pcall(function()
+                local Live = workspace:FindFirstChild("Live")
+                if Live then
+                    local children = Live:GetChildren()
+                    local targetChild = children[33]
+                    if targetChild then
+                        local vanish = targetChild:FindFirstChild("Vanish")
+                        if vanish then
+                            vanish:Destroy()
+                        end
+                    end
+                end
+            end)
         end
     end,
 })
