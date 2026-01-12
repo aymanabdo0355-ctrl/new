@@ -1173,6 +1173,8 @@ local Skill4DistanceSlider = GoldFarmTab:CreateSlider({
 -- Exploits Tab
 local ExploitsTab = Window:CreateTab("exploits", 4483362458)
 
+local ExploitsInfoLabel = ExploitsTab:CreateLabel("These skills hit everyone on the map")
+
 -- Projectile variables - always enabled
 local characterProjectiles = {
     YusukeSpiritGun = false,
@@ -1196,6 +1198,8 @@ local characterProjectiles = {
     JosephJeep = false,
     JosephBarrel = false,
     WeatherReportTornado = false,
+    GutsRepeater = false,
+    IchigoTSGetsuga = false,
     KisameShark = false,
     JosephHamon = false,
     OldJosephBarrel = false,
@@ -1233,6 +1237,12 @@ local function runProjectile(obj)
         shouldManipulate = true
     -- Nado (Weather Report Tornado)
     elseif obj.Name == "Nado" and characterProjectiles.WeatherReportTornado then
+        shouldManipulate = true
+    -- Arrow (Guts Repeater)
+    elseif obj.Name == "Arrow" and characterProjectiles.GutsRepeater then
+        shouldManipulate = true
+    -- NewGetsuga (Ichigo TS Getsuga)
+    elseif obj.Name == "NewGetsuga" and characterProjectiles.IchigoTSGetsuga then
         shouldManipulate = true
     -- EraserBlow (Broly)
     elseif obj.Name == "EraserBlow" and characterProjectiles.BrolyEraser then
@@ -1471,6 +1481,39 @@ local AkainuToggle = ExploitsTab:CreateToggle({
     end,
 })
 
+local AkainuHitboxToggle = ExploitsTab:CreateToggle({
+    Name = "Akainu | Fist Hitbox Expander",
+    CurrentValue = false,
+    Flag = "AkainuHitbox",
+    Callback = function(Value)
+        if Value then
+            if Connections['AkainuHitbox'] then
+                Connections['AkainuHitbox']:Disconnect()
+            end
+            
+            local folder = workspace:WaitForChild("Thrown")
+            
+            Connections['AkainuHitbox'] = folder.ChildAdded:Connect(function(fist)
+                if fist.Name == "Fist" and fist:IsA("MeshPart") then
+                    -- MAX practical size (safe)
+                    fist.Size = Vector3.new(2000, 2000, 2000)
+                    
+                    fist.Transparency = 1
+                    fist.CanCollide = false
+                    fist.CanTouch = true
+                    fist.CanQuery = true
+                    fist.Massless = true
+                end
+            end)
+        else
+            if Connections['AkainuHitbox'] then
+                Connections['AkainuHitbox']:Disconnect()
+                Connections['AkainuHitbox'] = nil
+            end
+        end
+    end,
+})
+
 local SuperDummySection = ExploitsTab:CreateSection("Super Dummy")
 
 local SuperDummyToggle = ExploitsTab:CreateToggle({
@@ -1544,6 +1587,45 @@ local BakugoInfDashToggle = ExploitsTab:CreateToggle({
             if Connections['BakugoInfDash'] then
                 pcall(function() task.cancel(Connections['BakugoInfDash']) end)
                 Connections['BakugoInfDash'] = nil
+            end
+        end
+    end,
+})
+
+local NatsuInfDashToggle = ExploitsTab:CreateToggle({
+    Name = "Natsu | Infinite Dash (Awakening)",
+    CurrentValue = false,
+    Flag = "NatsuInfDash",
+    Callback = function(Value)
+        if Value then
+            if Connections['NatsuInfDash'] then
+                Connections['NatsuInfDash']:Disconnect()
+            end
+            
+            Connections['NatsuInfDash'] = task.spawn(function()
+                while task.wait(0.1) do
+                    if not Connections['NatsuInfDash'] then break end
+                    
+                    pcall(function()
+                        local char = LocalPlayer.Character
+                        if char and char:FindFirstChild("HumanoidRootPart") then
+                            local hrp = char.HumanoidRootPart
+                            
+                            local args = {
+                                "dodge",
+                                {
+                                    pos = hrp.CFrame
+                                }
+                            }
+                            LocalPlayer:WaitForChild("Backpack"):WaitForChild("ServerTraits"):WaitForChild("Input"):FireServer(unpack(args))
+                        end
+                    end)
+                end
+            end)
+        else
+            if Connections['NatsuInfDash'] then
+                pcall(function() task.cancel(Connections['NatsuInfDash']) end)
+                Connections['NatsuInfDash'] = nil
             end
         end
     end,
@@ -1663,12 +1745,77 @@ local WeatherReportToggle = ExploitsTab:CreateToggle({
     end,
 })
 
+local GutsSection = ExploitsTab:CreateSection("Guts")
+
+local GutsRepeaterToggle = ExploitsTab:CreateToggle({
+    Name = "Guts | Repeater",
+    CurrentValue = false,
+    Flag = "GutsRepeater",
+    Callback = function(Value)
+        characterProjectiles.GutsRepeater = Value
+    end,
+})
+
+local IchigoTSSection = ExploitsTab:CreateSection("Ichigo TS")
+
+local IchigoTSGetsugaToggle = ExploitsTab:CreateToggle({
+    Name = "Ichigo TS | Getsuga",
+    CurrentValue = false,
+    Flag = "IchigoTSGetsuga",
+    Callback = function(Value)
+        characterProjectiles.IchigoTSGetsuga = Value
+    end,
+})
+
 -- Misc Tab
 local MiscTab = Window:CreateTab("misc", 4483362458)
 
 local DashesSection = MiscTab:CreateSection("Dashes")
 
-local DashesInfoLabel = MiscTab:CreateLabel("You can use all these dashes with any character")
+local DashesInfoLabel = MiscTab:CreateLabel("You can use all these dashes with any character reset to pick a new dash")
+
+local DisableTempMeterSection = MiscTab:CreateSection("Utilities")
+
+local DisableTempMeterToggle = MiscTab:CreateToggle({
+    Name = "Disable Temp Meter",
+    CurrentValue = false,
+    Flag = "DisableTempMeter",
+    Callback = function(Value)
+        if Value then
+            if Connections['DisableTempMeter'] then
+                Connections['DisableTempMeter']:Disconnect()
+            end
+            
+            local alternateValue = 10
+            
+            Connections['DisableTempMeter'] = task.spawn(function()
+                while task.wait(0.01) do
+                    if not Connections['DisableTempMeter'] then break end
+                    
+                    pcall(function()
+                        local Live = workspace:FindFirstChild("Live")
+                        if Live then
+                            local ardrisworld = Live:FindFirstChild("ardrisworld")
+                            if ardrisworld then
+                                local tempMeter = ardrisworld:FindFirstChild("TemperatureMeter")
+                                if tempMeter and tempMeter:IsA("IntConstrainedValue") then
+                                    -- Alternate between 10 and 15
+                                    tempMeter.Value = alternateValue
+                                    alternateValue = alternateValue == 10 and 15 or 10
+                                end
+                            end
+                        end
+                    end)
+                end
+            end)
+        else
+            if Connections['DisableTempMeter'] then
+                pcall(function() task.cancel(Connections['DisableTempMeter']) end)
+                Connections['DisableTempMeter'] = nil
+            end
+        end
+    end,
+})
 
 local KiritsuguDashesToggle = MiscTab:CreateToggle({
     Name = "Kiritsugu Dashes",
