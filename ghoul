@@ -1197,8 +1197,7 @@ local characterProjectiles = {
     BrolyMeteor = false,
     JosephJeep = false,
     JosephBarrel = false,
-    WeatherReportTornado = false,
-    GutsRepeater = false,
+    MrPresidentCocoJumbo = false,
     IchigoTSGetsuga = false,
     KisameShark = false,
     JosephHamon = false,
@@ -1235,11 +1234,8 @@ local function runProjectile(obj)
     -- Barrel (Joseph Barrel)
     elseif obj.Name == "Barrel" and characterProjectiles.JosephBarrel then
         shouldManipulate = true
-    -- Nado (Weather Report Tornado)
-    elseif obj.Name == "Nado" and characterProjectiles.WeatherReportTornado then
-        shouldManipulate = true
-    -- Arrow (Guts Repeater)
-    elseif obj.Name == "Arrow" and characterProjectiles.GutsRepeater then
+    -- CocoJumbo (Mr President)
+    elseif obj.Name == "CocoJumbo" and characterProjectiles.MrPresidentCocoJumbo then
         shouldManipulate = true
     -- NewGetsuga (Ichigo TS Getsuga)
     elseif obj.Name == "NewGetsuga" and characterProjectiles.IchigoTSGetsuga then
@@ -1734,25 +1730,14 @@ local NanamiBlackFlashToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local WeatherReportSection = ExploitsTab:CreateSection("Weather Report")
+local MrPresidentSection = ExploitsTab:CreateSection("Mr President")
 
-local WeatherReportToggle = ExploitsTab:CreateToggle({
-    Name = "Weather Report | Tornado",
+local MrPresidentToggle = ExploitsTab:CreateToggle({
+    Name = "Mr President | Coco Jumbo",
     CurrentValue = false,
-    Flag = "WeatherReportTornado",
+    Flag = "MrPresidentCocoJumbo",
     Callback = function(Value)
-        characterProjectiles.WeatherReportTornado = Value
-    end,
-})
-
-local GutsSection = ExploitsTab:CreateSection("Guts")
-
-local GutsRepeaterToggle = ExploitsTab:CreateToggle({
-    Name = "Guts | Repeater",
-    CurrentValue = false,
-    Flag = "GutsRepeater",
-    Callback = function(Value)
-        characterProjectiles.GutsRepeater = Value
+        characterProjectiles.MrPresidentCocoJumbo = Value
     end,
 })
 
@@ -1812,6 +1797,54 @@ local DisableTempMeterToggle = MiscTab:CreateToggle({
             if Connections['DisableTempMeter'] then
                 pcall(function() task.cancel(Connections['DisableTempMeter']) end)
                 Connections['DisableTempMeter'] = nil
+            end
+        end
+    end,
+})
+
+local AntiSnailToggle = MiscTab:CreateToggle({
+    Name = "Anti Weather Report Snail",
+    CurrentValue = false,
+    Flag = "AntiSnail",
+    Callback = function(Value)
+        if Value then
+            if Connections['AntiSnail'] then
+                Connections['AntiSnail']:Disconnect()
+            end
+            
+            if Connections['AntiSnailListener'] then
+                Connections['AntiSnailListener']:Disconnect()
+            end
+            
+            Connections['AntiSnail'] = task.spawn(function()
+                while task.wait(0.01) do
+                    if not Connections['AntiSnail'] then break end
+                    
+                    pcall(function()
+                        local becomeSnail = ReplicatedStorage:FindFirstChild("BecomeSnail")
+                        if becomeSnail then
+                            becomeSnail:Destroy()
+                        end
+                    end)
+                end
+            end)
+            
+            -- Also set up listener to destroy it immediately when it gets added
+            Connections['AntiSnailListener'] = ReplicatedStorage.ChildAdded:Connect(function(child)
+                if child.Name == "BecomeSnail" and Connections['AntiSnail'] then
+                    task.wait()
+                    child:Destroy()
+                end
+            end)
+        else
+            if Connections['AntiSnail'] then
+                pcall(function() task.cancel(Connections['AntiSnail']) end)
+                Connections['AntiSnail'] = nil
+            end
+            
+            if Connections['AntiSnailListener'] then
+                Connections['AntiSnailListener']:Disconnect()
+                Connections['AntiSnailListener'] = nil
             end
         end
     end,
