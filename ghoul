@@ -543,14 +543,14 @@ end
 print("[xes] loaded")
 
 local Window = Rayfield:CreateWindow({
-    Name = "xes",
-    LoadingTitle = "xes",
-    LoadingSubtitle = "init",
-    Theme = "Light",
+    Name = "xes hub",
+    LoadingTitle = "xes hub",
+    LoadingSubtitle = "by xes",
+    Theme = "Default",
     ConfigurationSaving = {
-        Enabled = false,
-        FolderName = nil,
-        FileName = "xes"
+        Enabled = true,
+        FolderName = "xes_hub",
+        FileName = "config"
     },
     Discord = {
         Enabled = false,
@@ -560,9 +560,15 @@ local Window = Rayfield:CreateWindow({
     KeySystem = false
 })
 
+-- Create Tabs
 local MainTab = Window:CreateTab("ranked farm", 4483362458)
+local GoldFarmTab = Window:CreateTab("gold farm", 4483362458)
+local ExploitsTab = Window:CreateTab("exploits", 4483362458)
+local MiscTab = Window:CreateTab("misc", 4483362458)
+local SettingsTab = Window:CreateTab("settings", 4483362458)
 
-local FarmSection = MainTab:CreateSection("modes")
+-- RANKED FARM TAB
+local FarmModesSection = MainTab:CreateSection("modes")
 
 local AltToggle = MainTab:CreateToggle({
     Name = "alt mode",
@@ -612,7 +618,7 @@ local MainToggle = MainTab:CreateToggle({
     end,
 })
 
-local DesyncSection = MainTab:CreateSection("network")
+local NetworkSection = MainTab:CreateSection("network")
 
 local DesyncToggle = MainTab:CreateToggle({
     Name = "desync",
@@ -628,7 +634,6 @@ local DesyncToggle = MainTab:CreateToggle({
     end,
 })
 
-local SettingsTab = Window:CreateTab("config", 4483362458)
 
 local RenderSection = SettingsTab:CreateSection("performance")
 
@@ -667,7 +672,7 @@ local WebhookInput = SettingsTab:CreateInput({
 })
 
 local WebhookTest = SettingsTab:CreateButton({
-    Name = "test",
+    Name = "Test Webhook",
     Callback = function()
         if webhookUrl == "" or webhookUrl == "YOUR_WEBHOOK_URL_HERE" then
             print("[xes] no webhook set")
@@ -677,7 +682,7 @@ local WebhookTest = SettingsTab:CreateButton({
     end,
 })
 
-local InfoSection = SettingsTab:CreateSection("status")
+local InfoSection = SettingsTab:CreateSection("info")
 local InfoLabel = SettingsTab:CreateLabel("afk bypass: active")
 local InfoLabel2 = SettingsTab:CreateLabel("auto rematch: active")
 local InfoLabel3 = SettingsTab:CreateLabel("auto skip bans: active")
@@ -685,7 +690,7 @@ local InfoLabel3 = SettingsTab:CreateLabel("auto skip bans: active")
 local DebugSection = SettingsTab:CreateSection("debug")
 
 local DebugButton = SettingsTab:CreateButton({
-    Name = "print ui structure",
+    Name = "Print UI Structure",
     Callback = function()
         pcall(function()
             local hudGui = LocalPlayer.PlayerGui:FindFirstChild("HUD")
@@ -718,7 +723,7 @@ local DebugButton = SettingsTab:CreateButton({
     end,
 })
 
-local SkipBansSection = SettingsTab:CreateSection("auto features")
+local SkipBansSection = SettingsTab:CreateSection("automation")
 
 local AutoSkipBansToggle = SettingsTab:CreateToggle({
     Name = "skip bans",
@@ -730,12 +735,12 @@ local AutoSkipBansToggle = SettingsTab:CreateToggle({
 })
 
 -- Gold Farm Tab
-local GoldFarmTab = Window:CreateTab("gold farm", 4483362458)
 
-local FarmWarningSection = GoldFarmTab:CreateSection("warning")
-local FarmWarningLabel = GoldFarmTab:CreateLabel("enable desync first!")
+-- GOLD FARM TAB
+local GoldFarmWarningSection = GoldFarmTab:CreateSection("")
+local GoldFarmWarning = GoldFarmTab:CreateLabel("enable desync first")
 
-local TargetSection = GoldFarmTab:CreateSection("target selection")
+local TargetSection = GoldFarmTab:CreateSection("target")
 
 -- Variables for Gold Farm
 local goldFarmEnabled = false
@@ -925,7 +930,7 @@ local RefreshButton = GoldFarmTab:CreateButton({
     end,
 })
 
-local FarmSettingsSection = GoldFarmTab:CreateSection("farm settings")
+local FarmSettingsSection = GoldFarmTab:CreateSection("settings")
 
 local DistanceSlider = GoldFarmTab:CreateSlider({
     Name = "distance",
@@ -949,10 +954,10 @@ local HeightSlider = GoldFarmTab:CreateSlider({
     end,
 })
 
-local FarmControlSection = GoldFarmTab:CreateSection("farm control")
+local FarmControlSection = GoldFarmTab:CreateSection("control")
 
 local GoldFarmToggle = GoldFarmTab:CreateToggle({
-    Name = "auto farm player",
+    Name = "auto farm",
     CurrentValue = false,
     Flag = "GoldFarm",
     Callback = function(Value)
@@ -1088,7 +1093,7 @@ local AutoGToggle = GoldFarmTab:CreateToggle({
     end,
 })
 
-local SkillsSection = GoldFarmTab:CreateSection("auto skills")
+local SkillsSection = GoldFarmTab:CreateSection("skills")
 
 local Skill1Toggle = GoldFarmTab:CreateToggle({
     Name = "skill 1",
@@ -1171,7 +1176,6 @@ local Skill4DistanceSlider = GoldFarmTab:CreateSlider({
 })
 
 -- Exploits Tab
-local ExploitsTab = Window:CreateTab("exploits", 4483362458)
 
 local ExploitsInfoLabel = ExploitsTab:CreateLabel("These skills hit everyone on the map")
 
@@ -1189,6 +1193,7 @@ local characterProjectiles = {
     KazumaSniper = false,
     BrolyEraser = false,
     GaaraTsunami = false,
+    GaaraGreatTsunami = false,
     SinonArrow = false,
     GojoBlueUlt = false,
     AcceleratorQuake = false,
@@ -1203,6 +1208,8 @@ local characterProjectiles = {
     JosephHamon = false,
     OldJosephBarrel = false,
     OldJosephJeep = false,
+    GrimjowPantherClaw = false,
+    ItachiAmaterasu = false,
 }
 
 local function runProjectile(obj)
@@ -1219,6 +1226,9 @@ local function runProjectile(obj)
            characterProjectiles.AcceleratorQuake then
             shouldManipulate = true
         end
+    -- Bal (Grimjow Panther Claw)
+    elseif obj.Name == "Bal" and characterProjectiles.GrimjowPantherClaw then
+        shouldManipulate = true
     -- Fist (Akainu)
     elseif obj.Name == "Fist" and characterProjectiles.AkainuFist then
         shouldManipulate = true
@@ -1243,8 +1253,8 @@ local function runProjectile(obj)
     -- EraserBlow (Broly)
     elseif obj.Name == "EraserBlow" and characterProjectiles.BrolyEraser then
         shouldManipulate = true
-    -- Coolljamie13Fire
-    elseif obj.Name == "Coolljamie13Fire" and characterProjectiles.FireSkill then
+    -- Fire Skills (Itachi/Shisui/Rengoku) - checks if name ends with "Fire"
+    elseif obj.Name:match("Fire$") and characterProjectiles.FireSkill then
         shouldManipulate = true
     -- Coin (Misaka)
     elseif obj.Name == "Coin" and characterProjectiles.Misaka then
@@ -1264,6 +1274,9 @@ local function runProjectile(obj)
     -- Tsunami (Gaara)
     elseif obj.Name == "Tsunami" and characterProjectiles.GaaraTsunami then
         shouldManipulate = true
+    -- GreatTsunami (Gaara)
+    elseif obj.Name == "GreatTsunami" and characterProjectiles.GaaraGreatTsunami then
+        shouldManipulate = true
     -- SinonSmallArrow, Sniper1, Sniper2 (Sinon)
     elseif (obj.Name == "SinonSmallArrow" or obj.Name == "Sniper1" or obj.Name == "Sniper2") and characterProjectiles.SinonArrow then
         shouldManipulate = true
@@ -1281,6 +1294,9 @@ local function runProjectile(obj)
         shouldManipulate = true
     -- Jeep (Old Joseph)
     elseif obj.Name == "Jeep" and characterProjectiles.OldJosephJeep then
+        shouldManipulate = true
+    -- AmaterasuBall (Itachi)
+    elseif obj.Name == "AmaterasuBall" and characterProjectiles.ItachiAmaterasu then
         shouldManipulate = true
     end
     
@@ -1367,7 +1383,7 @@ local GojoToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local FireSkillSection = ExploitsTab:CreateSection("Fire Skill")
+local FireSkillSection = ExploitsTab:CreateSection("Fire Skills")
 
 local FireToggle = ExploitsTab:CreateToggle({
     Name = "Fire | Itachi | Shisui | Rengoku",
@@ -1375,6 +1391,15 @@ local FireToggle = ExploitsTab:CreateToggle({
     Flag = "FireSkill",
     Callback = function(Value)
         characterProjectiles.FireSkill = Value
+    end,
+})
+
+local AmaterasuToggle = ExploitsTab:CreateToggle({
+    Name = "Itachi | Amaterasu",
+    CurrentValue = false,
+    Flag = "ItachiAmaterasu",
+    Callback = function(Value)
+        characterProjectiles.ItachiAmaterasu = Value
     end,
 })
 
@@ -1430,6 +1455,15 @@ local GaaraToggle = ExploitsTab:CreateToggle({
     Flag = "GaaraTsunami",
     Callback = function(Value)
         characterProjectiles.GaaraTsunami = Value
+    end,
+})
+
+local GaaraGreatToggle = ExploitsTab:CreateToggle({
+    Name = "Gaara | Great Tsunami",
+    CurrentValue = false,
+    Flag = "GaaraGreatTsunami",
+    Callback = function(Value)
+        characterProjectiles.GaaraGreatTsunami = Value
     end,
 })
 
@@ -1638,6 +1672,15 @@ local KisameToggle = ExploitsTab:CreateToggle({
     end,
 })
 
+local GrimjowToggle = ExploitsTab:CreateToggle({
+    Name = "Grimjow | Panther Claw",
+    CurrentValue = false,
+    Flag = "GrimjowPantherClaw",
+    Callback = function(Value)
+        characterProjectiles.GrimjowPantherClaw = Value
+    end,
+})
+
 local NanamiSection = ExploitsTab:CreateSection("Nanami")
 
 local NanamiBlackFlashToggle = ExploitsTab:CreateToggle({
@@ -1753,7 +1796,6 @@ local IchigoTSGetsugaToggle = ExploitsTab:CreateToggle({
 })
 
 -- Misc Tab
-local MiscTab = Window:CreateTab("misc", 4483362458)
 
 local DashesSection = MiscTab:CreateSection("Dashes")
 
@@ -1850,6 +1892,50 @@ local AntiSnailToggle = MiscTab:CreateToggle({
     end,
 })
 
+-- Dash Helper Function
+local function setDash(dashName)
+    pcall(function()
+        local char = LocalPlayer.Character
+        if not char then return end
+        
+        local Live = workspace:FindFirstChild("Live")
+        if not Live then return end
+        
+        -- Find the EXISTING character folder (the game creates this, not us)
+        -- It's usually the character model name, not the player name
+        local charFolder = nil
+        for _, folder in pairs(Live:GetChildren()) do
+            if folder:IsA("Model") and folder:FindFirstChild("HumanoidRootPart") then
+                -- This is the actual character model
+                charFolder = folder
+                break
+            end
+        end
+        
+        if not charFolder then return end
+        
+        -- Clear all existing dashes
+        for _, child in pairs(charFolder:GetChildren()) do
+            if child:IsA("Folder") and (
+                child.Name:find("Dodge") or 
+                child.Name == "AccelDodges" or
+                child.Name == "ROKUSHIKI" or
+                child.Name == "FLOATPASSIVE" or
+                child.Name == "Vanish"
+            ) then
+                child:Destroy()
+            end
+        end
+        
+        -- Add new dash if specified
+        if dashName then
+            local dash = Instance.new("Folder")
+            dash.Name = dashName
+            dash.Parent = charFolder
+        end
+    end)
+end
+
 local KiritsuguDashesToggle = MiscTab:CreateToggle({
     Name = "Kiritsugu Dashes",
     CurrentValue = false,
@@ -1857,78 +1943,21 @@ local KiritsuguDashesToggle = MiscTab:CreateToggle({
     Callback = function(Value)
         if Value then
             if Connections['KiritsuguDashes'] then
-                Connections['KiritsuguDashes']:Disconnect()
+                task.cancel(Connections['KiritsuguDashes'])
             end
             
             Connections['KiritsuguDashes'] = task.spawn(function()
                 while task.wait(0.05) do
                     if not Connections['KiritsuguDashes'] then break end
-                    
-                    pcall(function()
-                        -- Ensure Live exists
-                        local Live = workspace:FindFirstChild("Live")
-                        if not Live then
-                            Live = Instance.new("Folder")
-                            Live.Name = "Live"
-                            Live.Parent = workspace
-                        end
-                        
-                        -- Ensure ardrisworld exists
-                        local playerFolder = Live:FindFirstChild(LocalPlayer.Name)
-                        if not playerFolder then
-                            playerFolder = Instance.new("Folder")
-                            playerFolder.Name = LocalPlayer.Name
-                            playerFolder.Parent = Live
-                        end
-                        
-                        -- Function to ensure AccelDodges exists
-                        local function ensureAccelDodges()
-                            if not playerFolder:FindFirstChild("AccelDodges") then
-                                local accelDodges = Instance.new("Folder")
-                                accelDodges.Name = "AccelDodges"
-                                accelDodges.Parent = playerFolder
-                            end
-                        end
-                        
-                        -- Initial check
-                        ensureAccelDodges()
-                        
-                        -- Re-create if deleted
-                        if not Connections['AccelDodgesListener'] then
-                            Connections['AccelDodgesListener'] = playerFolder.ChildRemoved:Connect(function(child)
-                                if child.Name == "AccelDodges" and Connections['KiritsuguDashes'] then
-                                    task.wait()
-                                    ensureAccelDodges()
-                                end
-                            end)
-                        end
-                    end)
+                    setDash("AccelDodges")
                 end
             end)
         else
             if Connections['KiritsuguDashes'] then
-                pcall(function() task.cancel(Connections['KiritsuguDashes']) end)
+                task.cancel(Connections['KiritsuguDashes'])
                 Connections['KiritsuguDashes'] = nil
             end
-            
-            if Connections['AccelDodgesListener'] then
-                Connections['AccelDodgesListener']:Disconnect()
-                Connections['AccelDodgesListener'] = nil
-            end
-            
-            -- Remove AccelDodges folder when disabled
-            pcall(function()
-                local Live = workspace:FindFirstChild("Live")
-                if Live then
-                    local playerFolder = Live:FindFirstChild(LocalPlayer.Name)
-                    if playerFolder then
-                        local accelDodges = playerFolder:FindFirstChild("AccelDodges")
-                        if accelDodges then
-                            accelDodges:Destroy()
-                        end
-                    end
-                end
-            end)
+            setDash(nil) -- Remove dash
         end
     end,
 })
