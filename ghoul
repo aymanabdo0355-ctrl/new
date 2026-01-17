@@ -396,13 +396,13 @@ end
 -- Improved webhook sender
 local function SendRankedWebhook()
     if webhookUrl == "" or webhookUrl == "YOUR_WEBHOOK_URL_HERE" then return end
-    if not isMainAccount then return end -- Only main sends webhooks
     
     local requestFunc = (syn and syn.request) or (http and http.request) or (http_request) or (request)
     if not requestFunc then return end
     
-    task.wait(1.5) -- Wait for money UI to update
+    task.wait(1.5)
     local stats = getFinalStats()
+    local accountType = isMainAccount and "Main Account" or "Alt Account"
     
     pcall(function()
         requestFunc({
@@ -411,17 +411,19 @@ local function SendRankedWebhook()
             Headers = {["Content-Type"] = "application/json"},
             Body = HttpService:JSONEncode({
                 ["embeds"] = {{
-                    ["title"] = "🛡️ Character Selection: " .. LocalPlayer.Name,
+                    ["title"] = "📊 Ranked Farm Stats",
+                    ["description"] = "**" .. LocalPlayer.Name .. "** • " .. accountType,
                     ["color"] = stats.EmbedColor,
                     ["fields"] = {
-                        {["name"] = "💰 Money", ["value"] = "**" .. stats.Money .. "**", ["inline"] = true},
-                        {["name"] = "📊 Level", ["value"] = "**" .. stats.Level .. "**", ["inline"] = true},
-                        {["name"] = "🎖️ Rank", ["value"] = "**" .. stats.Rank .. "**", ["inline"] = false}
+                        {["name"] = "💰 Money", ["value"] = stats.Money, ["inline"] = true},
+                        {["name"] = "📊 Level", ["value"] = stats.Level, ["inline"] = true},
+                        {["name"] = "🎖️ Rank", ["value"] = stats.Rank, ["inline"] = true}
                     },
                     ["footer"] = {["text"] = "Server: " .. game.JobId},
                     ["thumbnail"] = {
                         ["url"] = "https://api.newstargeted.com/roblox/users/v1/avatar-headshot?userid=" .. LocalPlayer.UserId .. "&size=150x150&format=Png"
-                    }
+                    },
+                    ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%S")
                 }}
             })
         })
@@ -509,6 +511,29 @@ local function StartFarming()
             end
         end)
     end
+    
+    -- Send start webhook
+    local accountType = isMainAccount and "Main Account" or "Alt Account"
+    if webhookUrl ~= "" and webhookUrl ~= "YOUR_WEBHOOK_URL_HERE" then
+        local requestFunc = (syn and syn.request) or (http and http.request) or (http_request) or (request)
+        if requestFunc then
+            pcall(function()
+                requestFunc({
+                    Url = webhookUrl,
+                    Method = "POST",
+                    Headers = {["Content-Type"] = "application/json"},
+                    Body = HttpService:JSONEncode({
+                        ["embeds"] = {{
+                            ["title"] = "🟢 Farm Started",
+                            ["description"] = "**" .. LocalPlayer.Name .. "** • " .. accountType,
+                            ["color"] = 65280,
+                            ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%S")
+                        }}
+                    })
+                })
+            end)
+        end
+    end
 end
 
 local function StopFarming()
@@ -526,6 +551,31 @@ local function StopFarming()
     if Connections['AltAutoDeath'] then
         pcall(function() task.cancel(Connections['AltAutoDeath']) end)
         Connections['AltAutoDeath'] = nil
+    end
+    
+    -- Send stop webhook with final stats
+    SendRankedWebhook()
+    
+    local accountType = isMainAccount and "Main Account" or "Alt Account"
+    if webhookUrl ~= "" and webhookUrl ~= "YOUR_WEBHOOK_URL_HERE" then
+        local requestFunc = (syn and syn.request) or (http and http.request) or (http_request) or (request)
+        if requestFunc then
+            pcall(function()
+                requestFunc({
+                    Url = webhookUrl,
+                    Method = "POST",
+                    Headers = {["Content-Type"] = "application/json"},
+                    Body = HttpService:JSONEncode({
+                        ["embeds"] = {{
+                            ["title"] = "🔴 Farm Stopped",
+                            ["description"] = "**" .. LocalPlayer.Name .. "** • " .. accountType,
+                            ["color"] = 16711680,
+                            ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%S")
+                        }}
+                    })
+                })
+            end)
+        end
     end
 end
 
@@ -724,37 +774,14 @@ local AltToggle = MainTab:CreateToggle({
 })
 
 local InfoSection = MainTab:CreateSection("Information")
-local InfoLabel1 = MainTab:CreateLabel("main mode: normal gameplay")
-local InfoLabel2 = MainTab:CreateLabel("alt mode: dies in arena automatically")
-local InfoLabel3 = MainTab:CreateLabel("webhook: sends stats after each match")
-
-local WebhookSection = MainTab:CreateSection("Webhook")
-
-local WebhookInput = MainTab:CreateInput({
-    Name = "Discord Webhook URL",
-    PlaceholderText = "https://discord.com/api/webhooks/...",
-    RemoveTextAfterFocusLost = false,
-    Callback = function(Text)
-        webhookUrl = Text
-        print("[xes] webhook set")
-    end,
-})
-
-local WebhookTestButton = MainTab:CreateButton({
-    Name = "Test Webhook",
-    Callback = function()
-        if webhookUrl == "" or webhookUrl == "YOUR_WEBHOOK_URL_HERE" then
-            print("[xes] no webhook set")
-        else
-            SendRankedWebhook()
-        end
-    end,
-})
+local InfoLabel1 = MainTab:CreateLabel("Main Mode: Plays normally")
+local InfoLabel2 = MainTab:CreateLabel("Alt Mode: Auto dies in arena")
+local InfoLabel3 = MainTab:CreateLabel("Webhook sends stats after each match")
 
 local NetworkSection = MainTab:CreateSection("Network Settings")
 
 local DesyncToggle = MainTab:CreateToggle({
-    Name = "desync (needed for gold farm)",
+    Name = "Enable Desync (Required for Gold Farm)",
     CurrentValue = false,
     Flag = "Desync",
     Callback = function(Value)
@@ -781,6 +808,36 @@ local Render3DToggle = SettingsTab:CreateToggle({
         else
             RunService:Set3dRenderingEnabled(true)
             print("[xes] 3d rendering on")
+        end
+    end,
+})
+
+local WebhookSection = SettingsTab:CreateSection("webhook")
+
+local WebhookInput = SettingsTab:CreateInput({
+    Name = "url",
+    PlaceholderText = "discord webhook",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(Text)
+        webhookUrl = Text
+        
+        if Text ~= "" and Text ~= "YOUR_WEBHOOK_URL_HERE" then
+            SendWebhook(
+                "connected",
+                string.format("%s\n\nconnected", LocalPlayer.Name),
+                5814783
+            )
+        end
+    end,
+})
+
+local WebhookTest = SettingsTab:CreateButton({
+    Name = "Test Webhook",
+    Callback = function()
+        if webhookUrl == "" or webhookUrl == "YOUR_WEBHOOK_URL_HERE" then
+            print("[xes] no webhook set")
+        else
+            SendWebhook("test", "working", 3066993)
         end
     end,
 })
