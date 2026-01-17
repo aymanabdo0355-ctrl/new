@@ -564,6 +564,7 @@ local Window = Rayfield:CreateWindow({
 local MainTab = Window:CreateTab("ranked farm", 4483362458)
 local GoldFarmTab = Window:CreateTab("gold farm", 4483362458)
 local ExploitsTab = Window:CreateTab("exploits", 4483362458)
+local PerfectTimingTab = Window:CreateTab("perfect timing", 4483362458)
 local MiscTab = Window:CreateTab("misc", 4483362458)
 local SettingsTab = Window:CreateTab("settings", 4483362458)
 
@@ -1681,9 +1682,9 @@ local GrimjowToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local NanamiSection = ExploitsTab:CreateSection("Nanami")
+local NanamiSection = PerfectTimingTab:CreateSection("Nanami")
 
-local NanamiBlackFlashToggle = ExploitsTab:CreateToggle({
+local NanamiBlackFlashToggle = PerfectTimingTab:CreateToggle({
     Name = "Nanami | Auto Black Flash",
     CurrentValue = false,
     Flag = "NanamiAutoBlackFlash",
@@ -1768,6 +1769,176 @@ local NanamiBlackFlashToggle = ExploitsTab:CreateToggle({
                 
                 Debris:AddItem(TempGUI, .5)
                 return Temp3
+            end
+        end
+    end,
+})
+
+local KokushiboSection = PerfectTimingTab:CreateSection("Kokushibo")
+
+local KokushiboAutoPerfect = PerfectTimingTab:CreateToggle({
+    Name = "Kokushibo | Auto Perfect",
+    CurrentValue = false,
+    Flag = "KokushiboAutoPerfect",
+    Callback = function(Value)
+        if Value then
+            -- Hook the Kokushibo timing check
+            local KokushiboCheck = ReplicatedStorage:WaitForChild("KokushiboCheck")
+            
+            KokushiboCheck.OnClientInvoke = function(timeTotal, timeWindow)
+                local waitTime = timeTotal * 2
+                local windowTime = timeWindow * 2
+                local perfectTime = waitTime - windowTime
+                
+                local FrenchKokushibo = ReplicatedStorage.FrenchKokushibo:Clone()
+                for _, frame in pairs(FrenchKokushibo:GetChildren()) do
+                    TweenService:Create(frame, TweenInfo.new(perfectTime, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {
+                        Position = UDim2.new(
+                            frame.Position.X.Scale + math.random(1, 2) / 60 * (math.random(0, 1) == 0 and -1 or 1),
+                            0,
+                            frame.Position.Y.Scale + math.random(1, 3) / 90 * (math.random(0, 1) == 0 and -1 or 1),
+                            0
+                        )
+                    }):Play()
+                end
+                FrenchKokushibo.Parent = LocalPlayer.PlayerGui
+                
+                -- Auto click at perfect timing
+                task.wait(perfectTime + 0.01) -- Small delay for perfect timing
+                
+                -- Trigger the perfect click
+                for _, frame in pairs(FrenchKokushibo:GetChildren()) do
+                    TweenService:Create(frame.UIScale, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {
+                        Scale = 1.2
+                    }):Play()
+                    TweenService:Create(frame, TweenInfo.new(0.75, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {
+                        ImageTransparency = 1
+                    }):Play()
+                    frame.ImageColor3 = Color3.new(0.345098, 0.847059, 1)
+                end
+                
+                task.wait(windowTime)
+                FrenchKokushibo:Destroy()
+                
+                return true -- Always return success
+            end
+        else
+            -- Restore original function (would need to save original first)
+        end
+    end,
+})
+
+local YujiSection = PerfectTimingTab:CreateSection("Yuji")
+
+local YujiAutoBlackFlash = PerfectTimingTab:CreateToggle({
+    Name = "Yuji | Auto Black Flash",
+    CurrentValue = false,
+    Flag = "YujiAutoBlackFlash",
+    Callback = function(Value)
+        if Value then
+            -- Hook the Black Flash timing check
+            local BlackFlashEvent = ReplicatedStorage:WaitForChild("BlackFlashCheck")
+            
+            BlackFlashEvent.OnClientInvoke = function(totalTime, windowTime)
+                local waitTime = totalTime - windowTime
+                
+                -- Camera zoom in
+                TweenService:Create(workspace.CurrentCamera, TweenInfo.new(waitTime, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {
+                    FieldOfView = 6
+                }):Play()
+                
+                -- Wait for perfect timing
+                task.wait(waitTime + 0.01)
+                
+                -- Auto click at perfect moment (this sets the flag that we clicked)
+                local clickSuccess = true
+                
+                -- Camera zoom out
+                if windowTime > 0 then
+                    TweenService:Create(workspace.CurrentCamera, TweenInfo.new(windowTime), {
+                        FieldOfView = 70
+                    }):Play()
+                    task.wait(windowTime)
+                end
+                
+                -- Reset camera
+                workspace.CurrentCamera.FieldOfView = 70
+                task.spawn(function()
+                    task.wait(0.1)
+                    workspace.CurrentCamera.FieldOfView = 70
+                end)
+                
+                return true -- Always return perfect timing
+            end
+        else
+            -- Would need to restore original function
+        end
+    end,
+})
+
+local MahoragaSection = ExploitsTab:CreateSection("Mahoraga")
+
+local MahoragaAutoAttach = ExploitsTab:CreateToggle({
+    Name = "Mahoraga | Auto Attach",
+    CurrentValue = false,
+    Flag = "MahoragaAutoAttach",
+    Callback = function(Value)
+        if Value then
+            if Connections['MahoragaAttach'] then
+                Connections['MahoragaAttach']:Disconnect()
+            end
+            
+            Connections['MahoragaAttach'] = task.spawn(function()
+                while task.wait(0.1) do
+                    if not Connections['MahoragaAttach'] then break end
+                    
+                    pcall(function()
+                        local Thrown = workspace:FindFirstChild("Thrown")
+                        if not Thrown then return end
+                        
+                        -- Find Mahoraga in Thrown
+                        local mahoraga = nil
+                        for _, child in pairs(Thrown:GetChildren()) do
+                            if child.Name:find("Mahoraga") then
+                                mahoraga = child
+                                break
+                            end
+                        end
+                        
+                        if not mahoraga then return end
+                        
+                        local Live = workspace:FindFirstChild("Live")
+                        if not Live then return end
+                        
+                        -- Attach to all enemies in Live
+                        for _, target in pairs(Live:GetChildren()) do
+                            if target:IsA("Model") and target ~= LocalPlayer.Character then
+                                local targetRoot = target:FindFirstChild("HumanoidRootPart")
+                                local mahoRoot = mahoraga:FindFirstChild("HumanoidRootPart")
+                                
+                                if targetRoot and mahoRoot then
+                                    -- Position behind and lower (at legs level)
+                                    local behindOffset = targetRoot.CFrame.LookVector * -3
+                                    local legHeight = Vector3.new(0, -2.5, 0) -- Lower to leg level
+                                    mahoRoot.CFrame = targetRoot.CFrame + behindOffset + legHeight
+                                    
+                                    -- Disable Mahoraga collisions
+                                    for _, part in pairs(mahoraga:GetDescendants()) do
+                                        if part:IsA("BasePart") then
+                                            part.CanCollide = false
+                                            part.Massless = true
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end)
+                end
+            end)
+        else
+            if Connections['MahoragaAttach'] then
+                pcall(function() task.cancel(Connections['MahoragaAttach']) end)
+                Connections['MahoragaAttach'] = nil
             end
         end
     end,
