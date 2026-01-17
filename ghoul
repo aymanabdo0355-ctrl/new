@@ -739,7 +739,7 @@ local MiscTab = Window:CreateTab("misc", 4483362458)
 local SettingsTab = Window:CreateTab("settings", 4483362458)
 
 -- RANKED FARM TAB
-local FarmModesSection = MainTab:CreateSection("Farm Modes")
+FarmModesSection = MainTab:CreateSection("Farm Modes")
 
 local MainToggle = MainTab:CreateToggle({
     Name = "Main Account Mode",
@@ -773,12 +773,9 @@ local AltToggle = MainTab:CreateToggle({
     end,
 })
 
-local InfoSection = MainTab:CreateSection("Information")
-local InfoLabel1 = MainTab:CreateLabel("Main Mode: Plays normally")
-local InfoLabel2 = MainTab:CreateLabel("Alt Mode: Auto dies in arena")
-local InfoLabel3 = MainTab:CreateLabel("Webhook sends stats after each match")
 
-local NetworkSection = MainTab:CreateSection("Network Settings")
+
+NetworkSection = MainTab:CreateSection("Network Settings")
 
 local DesyncToggle = MainTab:CreateToggle({
     Name = "Enable Desync (Required for Gold Farm)",
@@ -795,7 +792,7 @@ local DesyncToggle = MainTab:CreateToggle({
 })
 
 
-local RenderSection = SettingsTab:CreateSection("performance")
+RenderSection = SettingsTab:CreateSection("performance")
 
 local Render3DToggle = SettingsTab:CreateToggle({
     Name = "disable 3d render",
@@ -812,9 +809,9 @@ local Render3DToggle = SettingsTab:CreateToggle({
     end,
 })
 
-local WebhookSection = SettingsTab:CreateSection("webhook")
+WebhookSection = SettingsTab:CreateSection("webhook")
 
-local WebhookInput = SettingsTab:CreateInput({
+WebhookInput = SettingsTab:CreateInput({
     Name = "url",
     PlaceholderText = "discord webhook",
     RemoveTextAfterFocusLost = false,
@@ -842,14 +839,14 @@ local WebhookTest = SettingsTab:CreateButton({
     end,
 })
 
-local InfoSection = SettingsTab:CreateSection("info")
-local InfoLabel = SettingsTab:CreateLabel("afk bypass: active")
+InfoSection = SettingsTab:CreateSection("info")
+InfoLabel = SettingsTab:CreateLabel("afk bypass: active")
 local InfoLabel2 = SettingsTab:CreateLabel("auto rematch: active")
 local InfoLabel3 = SettingsTab:CreateLabel("auto skip bans: active")
 
-local DebugSection = SettingsTab:CreateSection("debug")
+DebugSection = SettingsTab:CreateSection("debug")
 
-local DebugButton = SettingsTab:CreateButton({
+DebugButton = SettingsTab:CreateButton({
     Name = "Print UI Structure",
     Callback = function()
         pcall(function()
@@ -883,7 +880,7 @@ local DebugButton = SettingsTab:CreateButton({
     end,
 })
 
-local SkipBansSection = SettingsTab:CreateSection("automation")
+SkipBansSection = SettingsTab:CreateSection("automation")
 
 local AutoSkipBansToggle = SettingsTab:CreateToggle({
     Name = "skip bans",
@@ -894,9 +891,9 @@ local AutoSkipBansToggle = SettingsTab:CreateToggle({
     end,
 })
 
-local ConfigSection = SettingsTab:CreateSection("config")
+ConfigSection = SettingsTab:CreateSection("config")
 
-local SaveConfigButton = SettingsTab:CreateButton({
+SaveConfigButton = SettingsTab:CreateButton({
     Name = "save config",
     Callback = function()
         local config = {
@@ -946,7 +943,7 @@ local SaveConfigButton = SettingsTab:CreateButton({
     end,
 })
 
-local LoadConfigButton = SettingsTab:CreateButton({
+LoadConfigButton = SettingsTab:CreateButton({
     Name = "load config",
     Callback = function()
         if not isfile("xes_hub_config.json") then
@@ -994,7 +991,7 @@ local LoadConfigButton = SettingsTab:CreateButton({
     end,
 })
 
-local DeleteConfigButton = SettingsTab:CreateButton({
+DeleteConfigButton = SettingsTab:CreateButton({
     Name = "delete config",
     Callback = function()
         if isfile("xes_hub_config.json") then
@@ -1009,10 +1006,10 @@ local DeleteConfigButton = SettingsTab:CreateButton({
 -- Gold Farm Tab
 
 -- GOLD FARM TAB
-local GoldFarmWarningSection = GoldFarmTab:CreateSection("")
+GoldFarmWarningSection = GoldFarmTab:CreateSection("")
 local GoldFarmWarning = GoldFarmTab:CreateLabel("enable desync first")
 
-local TargetSection = GoldFarmTab:CreateSection("target")
+TargetSection = GoldFarmTab:CreateSection("target")
 
 -- Variables for Gold Farm
 local goldFarmEnabled = false
@@ -1187,7 +1184,7 @@ local TargetDropdown = GoldFarmTab:CreateDropdown({
     end,
 })
 
-local RefreshButton = GoldFarmTab:CreateButton({
+RefreshButton = GoldFarmTab:CreateButton({
     Name = "refresh players",
     Callback = function()
         playerList = {"Nearest Player"}
@@ -1202,9 +1199,9 @@ local RefreshButton = GoldFarmTab:CreateButton({
     end,
 })
 
-local FarmSettingsSection = GoldFarmTab:CreateSection("settings")
+FarmSettingsSection = GoldFarmTab:CreateSection("settings")
 
-local DistanceSlider = GoldFarmTab:CreateSlider({
+DistanceSlider = GoldFarmTab:CreateSlider({
     Name = "distance",
     Range = {0, 15},
     Increment = 1,
@@ -1215,7 +1212,7 @@ local DistanceSlider = GoldFarmTab:CreateSlider({
     end,
 })
 
-local HeightSlider = GoldFarmTab:CreateSlider({
+HeightSlider = GoldFarmTab:CreateSlider({
     Name = "height offset",
     Range = {0, 15},
     Increment = 1,
@@ -1226,9 +1223,9 @@ local HeightSlider = GoldFarmTab:CreateSlider({
     end,
 })
 
-local FarmControlSection = GoldFarmTab:CreateSection("control")
+FarmControlSection = GoldFarmTab:CreateSection("control")
 
-local GoldFarmToggle = GoldFarmTab:CreateToggle({
+GoldFarmToggle = GoldFarmTab:CreateToggle({
     Name = "auto farm",
     CurrentValue = false,
     Flag = "GoldFarm",
@@ -1279,7 +1276,7 @@ local GoldFarmToggle = GoldFarmTab:CreateToggle({
     end,
 })
 
-local LockOnToggle = GoldFarmTab:CreateToggle({
+LockOnToggle = GoldFarmTab:CreateToggle({
     Name = "lock on target",
     CurrentValue = false,
     Flag = "LockOn",
@@ -1311,7 +1308,7 @@ local LockOnToggle = GoldFarmTab:CreateToggle({
 })
 
 -- FIXED: Auto Attack uses proper remote instead of mouse1press
-local AutoAttackToggle = GoldFarmTab:CreateToggle({
+AutoAttackToggle = GoldFarmTab:CreateToggle({
     Name = "auto attack (m1)",
     CurrentValue = false,
     Flag = "AutoAttack",
@@ -1338,7 +1335,7 @@ local AutoAttackToggle = GoldFarmTab:CreateToggle({
     end,
 })
 
-local AutoGToggle = GoldFarmTab:CreateToggle({
+AutoGToggle = GoldFarmTab:CreateToggle({
     Name = "auto g",
     CurrentValue = false,
     Flag = "AutoG",
@@ -1365,9 +1362,9 @@ local AutoGToggle = GoldFarmTab:CreateToggle({
     end,
 })
 
-local SkillsSection = GoldFarmTab:CreateSection("skills")
+SkillsSection = GoldFarmTab:CreateSection("skills")
 
-local Skill1Toggle = GoldFarmTab:CreateToggle({
+Skill1Toggle = GoldFarmTab:CreateToggle({
     Name = "skill 1",
     CurrentValue = false,
     Flag = "Skill1",
@@ -1376,7 +1373,7 @@ local Skill1Toggle = GoldFarmTab:CreateToggle({
     end,
 })
 
-local Skill1DistanceSlider = GoldFarmTab:CreateSlider({
+Skill1DistanceSlider = GoldFarmTab:CreateSlider({
     Name = "skill 1 distance",
     Range = {0, 100},
     Increment = 5,
@@ -1387,7 +1384,7 @@ local Skill1DistanceSlider = GoldFarmTab:CreateSlider({
     end,
 })
 
-local Skill2Toggle = GoldFarmTab:CreateToggle({
+Skill2Toggle = GoldFarmTab:CreateToggle({
     Name = "skill 2",
     CurrentValue = false,
     Flag = "Skill2",
@@ -1396,7 +1393,7 @@ local Skill2Toggle = GoldFarmTab:CreateToggle({
     end,
 })
 
-local Skill2DistanceSlider = GoldFarmTab:CreateSlider({
+Skill2DistanceSlider = GoldFarmTab:CreateSlider({
     Name = "skill 2 distance",
     Range = {0, 100},
     Increment = 5,
@@ -1407,7 +1404,7 @@ local Skill2DistanceSlider = GoldFarmTab:CreateSlider({
     end,
 })
 
-local Skill3Toggle = GoldFarmTab:CreateToggle({
+Skill3Toggle = GoldFarmTab:CreateToggle({
     Name = "skill 3",
     CurrentValue = false,
     Flag = "Skill3",
@@ -1416,7 +1413,7 @@ local Skill3Toggle = GoldFarmTab:CreateToggle({
     end,
 })
 
-local Skill3DistanceSlider = GoldFarmTab:CreateSlider({
+Skill3DistanceSlider = GoldFarmTab:CreateSlider({
     Name = "skill 3 distance",
     Range = {0, 100},
     Increment = 5,
@@ -1427,7 +1424,7 @@ local Skill3DistanceSlider = GoldFarmTab:CreateSlider({
     end,
 })
 
-local Skill4Toggle = GoldFarmTab:CreateToggle({
+Skill4Toggle = GoldFarmTab:CreateToggle({
     Name = "skill 4",
     CurrentValue = false,
     Flag = "Skill4",
@@ -1436,7 +1433,7 @@ local Skill4Toggle = GoldFarmTab:CreateToggle({
     end,
 })
 
-local Skill4DistanceSlider = GoldFarmTab:CreateSlider({
+Skill4DistanceSlider = GoldFarmTab:CreateSlider({
     Name = "skill 4 distance",
     Range = {0, 100},
     Increment = 5,
@@ -1449,7 +1446,7 @@ local Skill4DistanceSlider = GoldFarmTab:CreateSlider({
 
 -- Exploits Tab
 
-local ExploitsInfoLabel = ExploitsTab:CreateLabel("These skills hit everyone on the map")
+ExploitsInfoLabel = ExploitsTab:CreateLabel("These skills hit everyone on the map")
 
 -- Projectile variables - always enabled
 local characterProjectiles = {
@@ -1622,9 +1619,9 @@ end
 
 setupProjectileListener()
 
-local SpiritGunSection = ExploitsTab:CreateSection("Spirit Gun")
+SpiritGunSection = ExploitsTab:CreateSection("Spirit Gun")
 
-local YusukeToggle = ExploitsTab:CreateToggle({
+YusukeToggle = ExploitsTab:CreateToggle({
     Name = "Yusuke Spirit Gun Auto Track",
     CurrentValue = false,
     Flag = "YusukeSpirit",
@@ -1633,9 +1630,9 @@ local YusukeToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local DekuSection = ExploitsTab:CreateSection("Deku")
+DekuSection = ExploitsTab:CreateSection("Deku")
 
-local DekuToggle = ExploitsTab:CreateToggle({
+DekuToggle = ExploitsTab:CreateToggle({
     Name = "Deku | Delaware Smash",
     CurrentValue = false,
     Flag = "DekuDelaware",
@@ -1644,9 +1641,9 @@ local DekuToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local GojoSection = ExploitsTab:CreateSection("Gojo")
+GojoSection = ExploitsTab:CreateSection("Gojo")
 
-local GojoToggle = ExploitsTab:CreateToggle({
+GojoToggle = ExploitsTab:CreateToggle({
     Name = "Gojo | Hollow Purple",
     CurrentValue = false,
     Flag = "GojoHollow",
@@ -1655,9 +1652,9 @@ local GojoToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local FireSkillSection = ExploitsTab:CreateSection("Fire Skills")
+FireSkillSection = ExploitsTab:CreateSection("Fire Skills")
 
-local FireToggle = ExploitsTab:CreateToggle({
+FireToggle = ExploitsTab:CreateToggle({
     Name = "Fire | Itachi | Shisui | Rengoku",
     CurrentValue = false,
     Flag = "FireSkill",
@@ -1666,7 +1663,7 @@ local FireToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local AmaterasuToggle = ExploitsTab:CreateToggle({
+AmaterasuToggle = ExploitsTab:CreateToggle({
     Name = "Itachi | Amaterasu",
     CurrentValue = false,
     Flag = "ItachiAmaterasu",
@@ -1675,9 +1672,9 @@ local AmaterasuToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local MisakaSection = ExploitsTab:CreateSection("Misaka")
+MisakaSection = ExploitsTab:CreateSection("Misaka")
 
-local MisakaToggle = ExploitsTab:CreateToggle({
+MisakaToggle = ExploitsTab:CreateToggle({
     Name = "Misaka | Coin (Bugged)",
     CurrentValue = false,
     Flag = "MisakaCoin",
@@ -1686,9 +1683,9 @@ local MisakaToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local BakugoSection = ExploitsTab:CreateSection("Bakugo")
+BakugoSection = ExploitsTab:CreateSection("Bakugo")
 
-local BakugoToggle = ExploitsTab:CreateToggle({
+BakugoToggle = ExploitsTab:CreateToggle({
     Name = "Bakugo | Gauntlet Blast",
     CurrentValue = false,
     Flag = "BakugoGauntlet",
@@ -1697,9 +1694,9 @@ local BakugoToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local BrolySection = ExploitsTab:CreateSection("Broly")
+BrolySection = ExploitsTab:CreateSection("Broly")
 
-local BrolyToggle = ExploitsTab:CreateToggle({
+BrolyToggle = ExploitsTab:CreateToggle({
     Name = "Broly | Eraser Blow",
     CurrentValue = false,
     Flag = "BrolyEraser",
@@ -1708,9 +1705,9 @@ local BrolyToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local KazumaSection = ExploitsTab:CreateSection("Kazuma")
+KazumaSection = ExploitsTab:CreateSection("Kazuma")
 
-local KazumaToggle = ExploitsTab:CreateToggle({
+KazumaToggle = ExploitsTab:CreateToggle({
     Name = "Kazuma | Sniper Arrow",
     CurrentValue = false,
     Flag = "KazumaSniper",
@@ -1719,9 +1716,9 @@ local KazumaToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local GaaraSection = ExploitsTab:CreateSection("Gaara")
+GaaraSection = ExploitsTab:CreateSection("Gaara")
 
-local GaaraToggle = ExploitsTab:CreateToggle({
+GaaraToggle = ExploitsTab:CreateToggle({
     Name = "Gaara | Tsunami",
     CurrentValue = false,
     Flag = "GaaraTsunami",
@@ -1730,7 +1727,7 @@ local GaaraToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local GaaraGreatToggle = ExploitsTab:CreateToggle({
+GaaraGreatToggle = ExploitsTab:CreateToggle({
     Name = "Gaara | Great Tsunami",
     CurrentValue = false,
     Flag = "GaaraGreatTsunami",
@@ -1739,9 +1736,9 @@ local GaaraGreatToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local SinonSection = ExploitsTab:CreateSection("Sinon")
+SinonSection = ExploitsTab:CreateSection("Sinon")
 
-local SinonToggle = ExploitsTab:CreateToggle({
+SinonToggle = ExploitsTab:CreateToggle({
     Name = "Sinon | Small Arrow",
     CurrentValue = false,
     Flag = "SinonArrow",
@@ -1750,9 +1747,9 @@ local SinonToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local GojoBlueUltSection = ExploitsTab:CreateSection("Gojo Blue Ult")
+GojoBlueUltSection = ExploitsTab:CreateSection("Gojo Blue Ult")
 
-local GojoBlueUltToggle = ExploitsTab:CreateToggle({
+GojoBlueUltToggle = ExploitsTab:CreateToggle({
     Name = "Gojo | Blue Ult",
     CurrentValue = false,
     Flag = "GojoBlueUlt",
@@ -1761,9 +1758,9 @@ local GojoBlueUltToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local AcceleratorSection = ExploitsTab:CreateSection("Accelerator")
+AcceleratorSection = ExploitsTab:CreateSection("Accelerator")
 
-local AcceleratorToggle = ExploitsTab:CreateToggle({
+AcceleratorToggle = ExploitsTab:CreateToggle({
     Name = "Accelerator | Quake",
     CurrentValue = false,
     Flag = "AcceleratorQuake",
@@ -1772,9 +1769,9 @@ local AcceleratorToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local AkainuSection = ExploitsTab:CreateSection("Akainu")
+AkainuSection = ExploitsTab:CreateSection("Akainu")
 
-local AkainuToggle = ExploitsTab:CreateToggle({
+AkainuToggle = ExploitsTab:CreateToggle({
     Name = "Akainu | Fist",
     CurrentValue = false,
     Flag = "AkainuFist",
@@ -1783,7 +1780,7 @@ local AkainuToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local AkainuHitboxToggle = ExploitsTab:CreateToggle({
+AkainuHitboxToggle = ExploitsTab:CreateToggle({
     Name = "Akainu | Fist Hitbox Expander",
     CurrentValue = false,
     Flag = "AkainuHitbox",
@@ -1816,9 +1813,9 @@ local AkainuHitboxToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local SuperDummySection = ExploitsTab:CreateSection("Super Dummy")
+SuperDummySection = ExploitsTab:CreateSection("Super Dummy")
 
-local SuperDummyToggle = ExploitsTab:CreateToggle({
+SuperDummyToggle = ExploitsTab:CreateToggle({
     Name = "Super Dummy | Kill Block",
     CurrentValue = false,
     Flag = "SuperDummyKillBlock",
@@ -1827,9 +1824,9 @@ local SuperDummyToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local BrolyMeteorSection = ExploitsTab:CreateSection("Broly Meteor")
+BrolyMeteorSection = ExploitsTab:CreateSection("Broly Meteor")
 
-local BrolyMeteorToggle = ExploitsTab:CreateToggle({
+BrolyMeteorToggle = ExploitsTab:CreateToggle({
     Name = "Broly | Meteor Shower",
     CurrentValue = false,
     Flag = "BrolyMeteor",
@@ -1838,9 +1835,9 @@ local BrolyMeteorToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local JosephSection = ExploitsTab:CreateSection("Joseph")
+JosephSection = ExploitsTab:CreateSection("Joseph")
 
-local JosephToggle = ExploitsTab:CreateToggle({
+JosephToggle = ExploitsTab:CreateToggle({
     Name = "Joseph | Jeep",
     CurrentValue = false,
     Flag = "JosephJeep",
@@ -1849,7 +1846,7 @@ local JosephToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local JosephBarrelToggle = ExploitsTab:CreateToggle({
+JosephBarrelToggle = ExploitsTab:CreateToggle({
     Name = "Joseph | Barrel",
     CurrentValue = false,
     Flag = "JosephBarrel",
@@ -1858,9 +1855,9 @@ local JosephBarrelToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local BakugoInfDashSection = ExploitsTab:CreateSection("Bakugo Abilities")
+BakugoInfDashSection = ExploitsTab:CreateSection("Bakugo Abilities")
 
-local BakugoInfDashToggle = ExploitsTab:CreateToggle({
+BakugoInfDashToggle = ExploitsTab:CreateToggle({
     Name = "Bakugo | Infinite Dash",
     CurrentValue = false,
     Flag = "BakugoInfDash",
@@ -1894,7 +1891,7 @@ local BakugoInfDashToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local NatsuInfDashToggle = ExploitsTab:CreateToggle({
+NatsuInfDashToggle = ExploitsTab:CreateToggle({
     Name = "Natsu | Infinite Dash (Awakening)",
     CurrentValue = false,
     Flag = "NatsuInfDash",
@@ -1933,9 +1930,9 @@ local NatsuInfDashToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local KisameSection = ExploitsTab:CreateSection("Kisame")
+KisameSection = ExploitsTab:CreateSection("Kisame")
 
-local KisameToggle = ExploitsTab:CreateToggle({
+KisameToggle = ExploitsTab:CreateToggle({
     Name = "Kisame | Shark",
     CurrentValue = false,
     Flag = "KisameShark",
@@ -1944,7 +1941,7 @@ local KisameToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local GrimjowToggle = ExploitsTab:CreateToggle({
+GrimjowToggle = ExploitsTab:CreateToggle({
     Name = "Grimjow | Panther Claw",
     CurrentValue = false,
     Flag = "GrimjowPantherClaw",
@@ -1953,9 +1950,9 @@ local GrimjowToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local NanamiSection = PerfectTimingTab:CreateSection("Nanami")
+NanamiSection = PerfectTimingTab:CreateSection("Nanami")
 
-local NanamiBlackFlashToggle = PerfectTimingTab:CreateToggle({
+NanamiBlackFlashToggle = PerfectTimingTab:CreateToggle({
     Name = "Nanami | Auto Black Flash",
     CurrentValue = false,
     Flag = "NanamiAutoBlackFlash",
@@ -2045,7 +2042,7 @@ local NanamiBlackFlashToggle = PerfectTimingTab:CreateToggle({
     end,
 })
 
-local KokushiboSection = PerfectTimingTab:CreateSection("Kokushibo")
+KokushiboSection = PerfectTimingTab:CreateSection("Kokushibo")
 
 local KokushiboAutoPerfect = PerfectTimingTab:CreateToggle({
     Name = "Kokushibo | Auto Perfect",
@@ -2099,7 +2096,7 @@ local KokushiboAutoPerfect = PerfectTimingTab:CreateToggle({
     end,
 })
 
-local BlackFlashSection = PerfectTimingTab:CreateSection("Black Flash")
+BlackFlashSection = PerfectTimingTab:CreateSection("Black Flash")
 
 local YujiAutoBlackFlash = PerfectTimingTab:CreateToggle({
     Name = "Auto Black Flash",
@@ -2147,11 +2144,11 @@ local YujiAutoBlackFlash = PerfectTimingTab:CreateToggle({
     end,
 })
 
-local AsunaTechSection = PerfectTimingTab:CreateSection("Asuna")
+AsunaTechSection = PerfectTimingTab:CreateSection("Asuna")
 
-local AsunaTechLabel = PerfectTimingTab:CreateLabel("extends combo when use switch move")
+AsunaTechLabel = PerfectTimingTab:CreateLabel("extends combo when use switch move")
 
-local AsunaTechToggle = PerfectTimingTab:CreateToggle({
+AsunaTechToggle = PerfectTimingTab:CreateToggle({
     Name = "Asuna Tech",
     CurrentValue = false,
     Flag = "AsunaTech",
@@ -2219,9 +2216,9 @@ local AsunaTechToggle = PerfectTimingTab:CreateToggle({
     end,
 })
 
-local MrPresidentSection = ExploitsTab:CreateSection("Mr President")
+MrPresidentSection = ExploitsTab:CreateSection("Mr President")
 
-local MrPresidentToggle = ExploitsTab:CreateToggle({
+MrPresidentToggle = ExploitsTab:CreateToggle({
     Name = "Mr President | Coco Jumbo",
     CurrentValue = false,
     Flag = "MrPresidentCocoJumbo",
@@ -2230,9 +2227,9 @@ local MrPresidentToggle = ExploitsTab:CreateToggle({
     end,
 })
 
-local IchigoTSSection = ExploitsTab:CreateSection("Ichigo TS")
+IchigoTSSection = ExploitsTab:CreateSection("Ichigo TS")
 
-local IchigoTSGetsugaToggle = ExploitsTab:CreateToggle({
+IchigoTSGetsugaToggle = ExploitsTab:CreateToggle({
     Name = "Ichigo TS | Getsuga",
     CurrentValue = false,
     Flag = "IchigoTSGetsuga",
@@ -2243,13 +2240,13 @@ local IchigoTSGetsugaToggle = ExploitsTab:CreateToggle({
 
 -- Misc Tab
 
-local DashesSection = MiscTab:CreateSection("Dashes")
+DashesSection = MiscTab:CreateSection("Dashes")
 
-local DashesInfoLabel = MiscTab:CreateLabel("You can use all these dashes with any character reset to pick a new dash")
+DashesInfoLabel = MiscTab:CreateLabel("You can use all these dashes with any character reset to pick a new dash")
 
-local DisableTempMeterSection = MiscTab:CreateSection("Utilities")
+DisableTempMeterSection = MiscTab:CreateSection("Utilities")
 
-local DisableTempMeterToggle = MiscTab:CreateToggle({
+DisableTempMeterToggle = MiscTab:CreateToggle({
     Name = "Disable Temp Meter",
     CurrentValue = false,
     Flag = "DisableTempMeter",
@@ -2290,9 +2287,9 @@ local DisableTempMeterToggle = MiscTab:CreateToggle({
     end,
 })
 
-local GojoBlueBuffSection = MiscTab:CreateSection("Gojo Blue Buff")
+GojoBlueBuffSection = MiscTab:CreateSection("Gojo Blue Buff")
 
-local GojoBlueBuffToggle = MiscTab:CreateToggle({
+GojoBlueBuffToggle = MiscTab:CreateToggle({
     Name = "blue buff",
     CurrentValue = false,
     Flag = "GojoBlue Buff",
@@ -2353,12 +2350,12 @@ local GojoBlueBuffToggle = MiscTab:CreateToggle({
     end,
 })
 
-local SuperDummySection = MiscTab:CreateSection("Super Dummy 10k Points")
+SuperDummySection = MiscTab:CreateSection("Super Dummy 10k Points")
 
-local SuperDummyLabel = MiscTab:CreateLabel("run on super dummy account")
+SuperDummyLabel = MiscTab:CreateLabel("run on super dummy account")
 local SuperDummyLabel2 = MiscTab:CreateLabel("toggle on then hit dummy once for 10k has to be on mode")
 
-local SuperDummy10kToggle = MiscTab:CreateToggle({
+SuperDummy10kToggle = MiscTab:CreateToggle({
     Name = "super dummy 10k Points",
     CurrentValue = false,
     Flag = "SuperDummy10k",
@@ -2400,12 +2397,12 @@ local SuperDummy10kToggle = MiscTab:CreateToggle({
     end,
 })
 
-local RollbackSection = MiscTab:CreateSection("Account Rollback")
+RollbackSection = MiscTab:CreateSection("Account Rollback")
 
-local RollbackLabel = MiscTab:CreateLabel("use if you get bad skin/prestige")
+RollbackLabel = MiscTab:CreateLabel("use if you get bad skin/prestige")
 local RollbackLabel2 = MiscTab:CreateLabel("reset music settings after")
 
-local RollbackButton = MiscTab:CreateButton({
+RollbackButton = MiscTab:CreateButton({
     Name = "Rollback Account",
     Callback = function()
         local success, err = pcall(function()
@@ -2427,7 +2424,7 @@ local RollbackButton = MiscTab:CreateButton({
     end,
 })
 
-local AntiSnailToggle = MiscTab:CreateToggle({
+AntiSnailToggle = MiscTab:CreateToggle({
     Name = "Anti Weather Report Snail",
     CurrentValue = false,
     Flag = "AntiSnail",
@@ -2475,7 +2472,7 @@ local AntiSnailToggle = MiscTab:CreateToggle({
     end,
 })
 
-local NoDashCooldownToggle = MiscTab:CreateToggle({
+NoDashCooldownToggle = MiscTab:CreateToggle({
     Name = "No Dash Cooldown",
     CurrentValue = false,
     Flag = "NoDashCooldown",
@@ -2543,7 +2540,7 @@ local NoDashCooldownToggle = MiscTab:CreateToggle({
     end,
 })
 
-local TimeskipSpamToggle = MiscTab:CreateToggle({
+TimeskipSpamToggle = MiscTab:CreateToggle({
     Name = "spam timeskip",
     CurrentValue = false,
     Flag = "TimeskipSpam",
@@ -2637,7 +2634,7 @@ local function setDash(dashName)
     end)
 end
 
-local KiritsuguDashesToggle = MiscTab:CreateToggle({
+KiritsuguDashesToggle = MiscTab:CreateToggle({
     Name = "Kiritsugu Dashes",
     CurrentValue = false,
     Flag = "KiritsuguDashes",
@@ -2663,7 +2660,7 @@ local KiritsuguDashesToggle = MiscTab:CreateToggle({
     end,
 })
 
-local UltraInstinctDashToggle = MiscTab:CreateToggle({
+UltraInstinctDashToggle = MiscTab:CreateToggle({
     Name = "Ultra Instinct Dash",
     CurrentValue = false,
     Flag = "UltraInstinctDash",
@@ -2740,7 +2737,7 @@ local UltraInstinctDashToggle = MiscTab:CreateToggle({
     end,
 })
 
-local FloatPassiveToggle = MiscTab:CreateToggle({
+FloatPassiveToggle = MiscTab:CreateToggle({
     Name = "Float Passive",
     CurrentValue = false,
     Flag = "FloatPassive",
@@ -2817,7 +2814,7 @@ local FloatPassiveToggle = MiscTab:CreateToggle({
     end,
 })
 
-local BakugoDashToggle = MiscTab:CreateToggle({
+BakugoDashToggle = MiscTab:CreateToggle({
     Name = "Bakugo Dash",
     CurrentValue = false,
     Flag = "BakugoDash",
@@ -2894,7 +2891,7 @@ local BakugoDashToggle = MiscTab:CreateToggle({
     end,
 })
 
-local WuxianDashToggle = MiscTab:CreateToggle({
+WuxianDashToggle = MiscTab:CreateToggle({
     Name = "Wuxian Dash",
     CurrentValue = false,
     Flag = "WuxianDash",
@@ -2971,7 +2968,7 @@ local WuxianDashToggle = MiscTab:CreateToggle({
     end,
 })
 
-local GeppoDashToggle = MiscTab:CreateToggle({
+GeppoDashToggle = MiscTab:CreateToggle({
     Name = "Geppo Dash",
     CurrentValue = false,
     Flag = "GeppoDash",
@@ -3048,7 +3045,7 @@ local GeppoDashToggle = MiscTab:CreateToggle({
     end,
 })
 
-local UssopDashToggle = MiscTab:CreateToggle({
+UssopDashToggle = MiscTab:CreateToggle({
     Name = "Ussop Dash",
     CurrentValue = false,
     Flag = "UssopDash",
@@ -3125,7 +3122,7 @@ local UssopDashToggle = MiscTab:CreateToggle({
     end,
 })
 
-local AwakeningDashToggle = MiscTab:CreateToggle({
+AwakeningDashToggle = MiscTab:CreateToggle({
     Name = "Awakening Dash",
     CurrentValue = false,
     Flag = "AwakeningDash",
